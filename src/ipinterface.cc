@@ -16,7 +16,7 @@
 
 using namespace std;
 
-void novadem::ip::IpInterface::run()
+void monadic::ip::IpInterface::run()
 {
     // Start emitting beacon
     startEmittingBeacon();
@@ -36,7 +36,7 @@ void novadem::ip::IpInterface::run()
 
 }
 
-void novadem::ip::IpInterface::emitBeacon()
+void monadic::ip::IpInterface::emitBeacon()
 {
     int fd;
     struct sockaddr_in addr;
@@ -82,7 +82,7 @@ void novadem::ip::IpInterface::emitBeacon()
     }
 }
 
-void novadem::ip::IpInterface::receiveBeacon()
+void monadic::ip::IpInterface::receiveBeacon()
 {
     ShortId parentId = _parentNode->id();
 
@@ -176,7 +176,7 @@ void novadem::ip::IpInterface::receiveBeacon()
 
 }
 
-bool novadem::ip::IpInterface::checkNetworkInterfaceExists( const std::string& ifName )
+bool monadic::ip::IpInterface::checkNetworkInterfaceExists( const std::string& ifName )
 {
     bool ret = false;
     struct ifaddrs *addrs,*tmp;

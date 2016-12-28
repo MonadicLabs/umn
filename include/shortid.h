@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace novadem
+namespace monadic
 {
 class ShortId
 {

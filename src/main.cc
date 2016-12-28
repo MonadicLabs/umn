@@ -8,14 +8,14 @@
 #include "ipinterface.h"
 
 using namespace std;
-using namespace novadem;
+using namespace monadic;
 
 int main( int argc, char** argv )
 {
     ShortId a;
     ShortId b(a);
 
-    CommInterface* com1 = new novadem::ip::IpInterface(argv[1]);
+    CommInterface* com1 = new monadic::ip::IpInterface(argv[1]);
     Node* n = new Node();
 
     cout << "Starting NODE " << n->id().toString() << endl;

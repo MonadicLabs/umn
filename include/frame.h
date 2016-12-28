@@ -1,6 +1,6 @@
 #pragma once
 
-namespace novadem
+namespace monadic
 {
     class Frame
     {

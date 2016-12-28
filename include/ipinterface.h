@@ -10,7 +10,7 @@
 #include "shortid.h"
 #include "frame.h"
 
-namespace novadem
+namespace monadic
 {
     namespace ip
     {

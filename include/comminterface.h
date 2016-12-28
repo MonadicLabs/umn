@@ -3,7 +3,7 @@
 #include "frame.h"
 #include "runnable.h"
 
-namespace novadem
+namespace monadic
 {
     class Node;
     class CommInterface : public novadem::Runnable

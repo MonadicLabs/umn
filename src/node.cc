@@ -3,7 +3,7 @@
 
 #include "node.h"
 
-void novadem::Node::run()
+void monadic::Node::run()
 {
     // Start
     for( CommInterface* cif : _cifs )
@@ -24,7 +24,7 @@ void novadem::Node::run()
 
 }
 
-void novadem::Node::addNeighbourReference(novadem::ShortId nodeId, novadem::CommInterface *source)
+void monadic::Node::addNeighbourReference(monadic::ShortId nodeId, monadic::CommInterface *source)
 {
     if( _neighbors.find(nodeId) == _neighbors.end() )
     {
@@ -50,7 +50,7 @@ void novadem::Node::addNeighbourReference(novadem::ShortId nodeId, novadem::Comm
     }
 }
 
-void novadem::Node::removeNeighbourReference(novadem::ShortId nodeId, novadem::CommInterface *source)
+void monadic::Node::removeNeighbourReference(monadic::ShortId nodeId, monadic::CommInterface *source)
 {
     if( _neighbors.find(nodeId) == _neighbors.end() )
     {
