@@ -1,6 +1,9 @@
 #pragma once
 
-namespace monadic
+#include <cstdint>
+#include <cstddef>
+
+namespace umn
 {
     class Frame
     {

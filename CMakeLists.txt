@@ -18,8 +18,13 @@ else()
         message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
 
-include_directories( ./include )
+find_package( UV REQUIRED )
+if( UV_FOUND )
+    include_directories( ${UV_INCLUDE_DIRS} )
+    set( DEPS "${DEPS};${UV_LIBRARIES}" )
+endif()
 
+include_directories( ./include )
 file(GLOB_RECURSE PROJSRC ${PROJECT_SOURCE_DIR}/src/*.c*)
 
 add_executable( umn ${PROJSRC} )

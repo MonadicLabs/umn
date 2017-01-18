@@ -10,15 +10,18 @@
 #include "shortid.h"
 #include "frame.h"
 
-namespace monadic
+#include <uv.h>
+
+namespace umn
 {
     namespace ip
     {
-
         typedef struct
         {
             int _ttl;
             std::string _nodeId;
+            uv_udp_t _udpRecv;
+            uv_udp_t _udpSend;
         } IpNodeReference;
 
         class IpInterface: public CommInterface
@@ -27,6 +30,8 @@ namespace monadic
             IpInterface( const std::string& ifName )
                 :_ifName(ifName)
             {
+                init();
+
                 // Look for all network interfaces
                 if( !checkNetworkInterfaceExists(_ifName) )
                 {
@@ -51,7 +56,7 @@ namespace monadic
 
             virtual void init()
             {
-
+                _uvLoop = uv_default_loop();
             }
 
             virtual void destroy()
@@ -68,6 +73,7 @@ namespace monadic
             std::string _ifName;
             std::string _ownIpAddr;
 
+            // maps ( node-IP / node-ID + ttl )
             std::map< std::string, IpNodeReference* > _nodeRefs;
 
             bool checkNetworkInterfaceExists(const std::string& ifName);
@@ -84,6 +90,8 @@ namespace monadic
             std::thread _beaconEmissionThread;
             std::thread _beaconReceptionThread;
 
+            uv_loop_t* _uvLoop;
+            static void node_recv_cb( uv_udp_t* handle, ssize_t nread, uv_buf_t, struct sockaddr* addr, unsigned flags );
 
         protected:
 

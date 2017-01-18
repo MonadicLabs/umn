@@ -6,9 +6,9 @@
 #include "comminterface.h"
 #include "shortid.h"
 
-namespace  monadic {
+namespace  umn {
 
-class Node : public novadem::Runnable
+class Node : public umn::Runnable
 {
 public:
 

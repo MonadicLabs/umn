@@ -3,7 +3,7 @@
 
 #include "node.h"
 
-void monadic::Node::run()
+void umn::Node::run()
 {
     // Start
     for( CommInterface* cif : _cifs )
@@ -24,7 +24,7 @@ void monadic::Node::run()
 
 }
 
-void monadic::Node::addNeighbourReference(monadic::ShortId nodeId, monadic::CommInterface *source)
+void umn::Node::addNeighbourReference(umn::ShortId nodeId, umn::CommInterface *source)
 {
     if( _neighbors.find(nodeId) == _neighbors.end() )
     {
@@ -50,7 +50,7 @@ void monadic::Node::addNeighbourReference(monadic::ShortId nodeId, monadic::Comm
     }
 }
 
-void monadic::Node::removeNeighbourReference(monadic::ShortId nodeId, monadic::CommInterface *source)
+void umn::Node::removeNeighbourReference(umn::ShortId nodeId, umn::CommInterface *source)
 {
     if( _neighbors.find(nodeId) == _neighbors.end() )
     {

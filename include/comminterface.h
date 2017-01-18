@@ -3,10 +3,10 @@
 #include "frame.h"
 #include "runnable.h"
 
-namespace monadic
+namespace umn
 {
     class Node;
-    class CommInterface : public novadem::Runnable
+    class CommInterface : public umn::Runnable
     {
         friend class Node;
     public:

@@ -1,7 +1,7 @@
 
 #include "frame.h"
 
-uint32_t monadic::Frame::adler32(unsigned char *data, size_t len)
+uint32_t umn::Frame::adler32(unsigned char *data, size_t len)
 {
 	const int MOD_ADLER = 65521;
 	uint32_t a = 1, b = 0;

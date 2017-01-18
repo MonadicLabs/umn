@@ -14,9 +14,31 @@
 
 #include "ipinterface.h"
 
+#include <uv.h>
+
 using namespace std;
 
-void monadic::ip::IpInterface::run()
+unsigned int hashstr(const char *str)
+{
+   unsigned int h;
+   unsigned char *p;
+
+   h = 0;
+   for (p = (unsigned char*)str; *p != '\0'; p++)
+      h = 37 * h + *p;
+   return h % 65536; // or, h % ARRAY_SIZE;
+}
+
+static uv_buf_t alloc_cb(uv_handle_t* handle, size_t suggested_size) {
+  static char slab[65536];
+
+  // CHECK_HANDLE(handle);
+  // ASSERT(suggested_size <= sizeof slab);
+
+  return uv_buf_init(slab, sizeof slab);
+}
+
+void umn::ip::IpInterface::run()
 {
     // Start emitting beacon
     startEmittingBeacon();
@@ -27,21 +49,20 @@ void monadic::ip::IpInterface::run()
     // Boucle d'ecoute
     while(!hasToStop())
     {
-        sleep(1);
+        // Wait for messages to arrive
+        uv_run(_uvLoop, UV_RUN_DEFAULT);
     }
     //
 
-    //    _beaconEmissionThread.join();
-    //    _beaconReceptionThread.join();
-
 }
 
-void monadic::ip::IpInterface::emitBeacon()
+void umn::ip::IpInterface::emitBeacon()
 {
     int fd;
     struct sockaddr_in addr;
     if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
     {
+        cout << "nope?" << endl;
         // exit(1);
     }
 
@@ -56,6 +77,7 @@ void monadic::ip::IpInterface::emitBeacon()
 
     while (!hasToStop())
     {
+        cout << "emit." << endl;
         if (sendto(fd, message, strlen(message), 0,(struct sockaddr *) &addr, sizeof(addr)) < 0)
         {
 
@@ -78,11 +100,10 @@ void monadic::ip::IpInterface::emitBeacon()
                 ++it;
             }
         }
-
     }
 }
 
-void monadic::ip::IpInterface::receiveBeacon()
+void umn::ip::IpInterface::receiveBeacon()
 {
     ShortId parentId = _parentNode->id();
 
@@ -91,7 +112,7 @@ void monadic::ip::IpInterface::receiveBeacon()
     struct sockaddr_in addr;
     if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
     {
-        // exit(1);
+        exit(1);
     }
 
     /**** MODIFICATION TO ORIGINAL */
@@ -126,6 +147,7 @@ void monadic::ip::IpInterface::receiveBeacon()
     char msgbuf[1024];
     /* now just enter a read-print loop */
     while (!hasToStop()) {
+        cout << "receive." << endl;
         int nbytes;
         uint addrlen=sizeof(addr);
         if ((nbytes=recvfrom(fd,msgbuf,1024,0,
@@ -136,6 +158,7 @@ void monadic::ip::IpInterface::receiveBeacon()
         }
         else
         {
+            cout << "nbytes=" << nbytes << endl;
             ShortId receivedId;
             // Check if is a valid ShortId
             try{
@@ -149,34 +172,40 @@ void monadic::ip::IpInterface::receiveBeacon()
             if( receivedId != parentId )
             {
                 std::string nodeIp = inet_ntoa(addr.sin_addr);
-                // cout << "nodeIp=" << nodeIp << endl;
+                int recvPort = hashstr(  receivedId.toString().c_str() );
+                cout << "nodeIp=" << nodeIp << " - " << recvPort << endl;
 
                 // Keep track of received IPs
                 if( _nodeRefs.find(nodeIp) == _nodeRefs.end() )
                 {
-                    // cout << "new ref" << endl;
+                    cout << "new ref" << endl;
                     IpNodeReference * ipref = new IpNodeReference();
                     ipref->_ttl = 10;
                     ipref->_nodeId = receivedId.toString();
+                    uv_udp_init(_uvLoop, &ipref->_udpRecv);
+                    struct sockaddr_in recv_addr;
+                    recv_addr = uv_ip4_addr("0.0.0.0", recvPort);
+                    uv_udp_bind( &ipref->_udpRecv, recv_addr,0);
+                    uv_udp_recv_start(&ipref->_udpRecv, alloc_cb, node_recv_cb);
                     _nodeRefs.insert( make_pair(nodeIp, ipref) );
                 }
                 else
                 {
-                    // cout << "existing ref" << endl;
+                    cout << "existing ref" << endl;
                     _nodeRefs[ nodeIp ]->_ttl = 10;
                 }
                 _parentNode->addNeighbourReference( ShortId(_nodeRefs[ nodeIp ]->_nodeId), this );
             }
             else
             {
-                // cout << "received our own id" << endl;
+                cout << "received our own id" << endl;
             }
         }
     }
 
 }
 
-bool monadic::ip::IpInterface::checkNetworkInterfaceExists( const std::string& ifName )
+bool umn::ip::IpInterface::checkNetworkInterfaceExists( const std::string& ifName )
 {
     bool ret = false;
     struct ifaddrs *addrs,*tmp;
@@ -201,4 +230,10 @@ bool monadic::ip::IpInterface::checkNetworkInterfaceExists( const std::string& i
     freeifaddrs(addrs);
     return ret;
 
+}
+
+void umn::ip::IpInterface::node_recv_cb(uv_udp_t *handle, ssize_t nread, uv_buf_t, sockaddr *addr, unsigned flags)
+{
+    IpInterface* ipi = (IpInterface*)handle->data;
+    cout << "coucou ?" << endl;
 }

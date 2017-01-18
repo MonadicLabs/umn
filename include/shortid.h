@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace monadic
+namespace umn
 {
 class ShortId
 {
