@@ -37,16 +37,16 @@ static uv_buf_t alloc_cb(uv_handle_t* handle, size_t suggested_size) {
 
 int main( int argc, char** argv )
 {
-    /*
-    loop = uv_default_loop();
 
-    uv_udp_init(loop, &recv_socket);
-    struct sockaddr_in recv_addr;
-    recv_addr = uv_ip4_addr("0.0.0.0", 6800);
-    uv_udp_bind(&recv_socket, recv_addr,0);
+//    loop = uv_default_loop();
 
-    uv_udp_recv_start(&recv_socket, alloc_cb, sv_recv_cb);
-    */
+//    uv_udp_init(loop, &recv_socket);
+//    struct sockaddr_in recv_addr;
+//    recv_addr = uv_ip4_addr("192.168.1.43", 6800);
+//    uv_udp_bind(&recv_socket, recv_addr,0);
+
+//    uv_udp_recv_start(&recv_socket, alloc_cb, sv_recv_cb);
+
 
     ShortId a;
     ShortId b(a);
@@ -68,7 +68,8 @@ int main( int argc, char** argv )
         sleep(1);
     }
 
-    // uv_run(loop, UV_RUN_DEFAULT);
+
+    //uv_run(loop, UV_RUN_DEFAULT);
 
     return 0;
 }

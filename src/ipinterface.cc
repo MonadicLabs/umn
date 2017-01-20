@@ -20,26 +20,48 @@ using namespace std;
 
 unsigned int hashstr(const char *str)
 {
-   unsigned int h;
-   unsigned char *p;
+    unsigned int h;
+    unsigned char *p;
 
-   h = 0;
-   for (p = (unsigned char*)str; *p != '\0'; p++)
-      h = 37 * h + *p;
-   return h % 65536; // or, h % ARRAY_SIZE;
+    h = 0;
+    for (p = (unsigned char*)str; *p != '\0'; p++)
+        h = 37 * h + *p;
+    int startRange = 1500;
+    int ret = (h + startRange) % (65536-startRange); // or, h % ARRAY_SIZE;
+    return ret;
 }
 
-static uv_buf_t alloc_cb(uv_handle_t* handle, size_t suggested_size) {
-  static char slab[65536];
+void alloc_cb(uv_handle_t* handle, size_t size, uv_buf_t* buf) {
+    buf->base = (char*)malloc(size);
+    buf->len = size;
+}
 
-  // CHECK_HANDLE(handle);
-  // ASSERT(suggested_size <= sizeof slab);
+void on_read(uv_udp_t *req, ssize_t nread, const uv_buf_t *buf, const struct sockaddr *addr, unsigned flags) {
 
-  return uv_buf_init(slab, sizeof slab);
+    if( nread <= 0 )
+        return;
+
+    cout << "popo" << endl;
+    cout << "Received beacon from ";
+    sockaddr_in* client = (sockaddr_in*)addr;
+    printf("%d.%d.%d.%d\n",
+      int(client->sin_addr.s_addr&0xFF),
+      int((client->sin_addr.s_addr&0xFF00)>>8),
+      int((client->sin_addr.s_addr&0xFF0000)>>16),
+      int((client->sin_addr.s_addr&0xFF000000)>>24));
 }
 
 void umn::ip::IpInterface::run()
 {
+    std::string  strAddr;
+    if( findInterfaceAddress( "wlan0", strAddr ) )
+    {
+        _ownIpAddr = strAddr;
+        cout << "own ip is: " << _ownIpAddr << endl;
+    }
+
+    startBeaconReception();
+
     // Start emitting beacon
     startEmittingBeacon();
 
@@ -182,12 +204,18 @@ void umn::ip::IpInterface::receiveBeacon()
                     IpNodeReference * ipref = new IpNodeReference();
                     ipref->_ttl = 10;
                     ipref->_nodeId = receivedId.toString();
+
+                    //
+                    /*
                     uv_udp_init(_uvLoop, &ipref->_udpRecv);
                     struct sockaddr_in recv_addr;
                     recv_addr = uv_ip4_addr("0.0.0.0", recvPort);
                     uv_udp_bind( &ipref->_udpRecv, recv_addr,0);
                     uv_udp_recv_start(&ipref->_udpRecv, alloc_cb, node_recv_cb);
                     _nodeRefs.insert( make_pair(nodeIp, ipref) );
+                    */
+                    //
+
                 }
                 else
                 {
@@ -232,8 +260,71 @@ bool umn::ip::IpInterface::checkNetworkInterfaceExists( const std::string& ifNam
 
 }
 
+bool umn::ip::IpInterface::findInterfaceAddress(const string &ifName, string &ifAddr)
+{
+    char buf[512];
+    uv_interface_address_t *info;
+    int count, i;
+
+    bool ret = false;
+
+    uv_interface_addresses(&info, &count);
+    i = count;
+
+    // printf("Number of interfaces: %d\n", count);
+    while (i--) {
+        uv_interface_address_t interface = info[i];
+
+        //        printf("Name: %s\n", interface.name);
+        //        printf("Internal? %s\n", interface.is_internal ? "Yes" : "No");
+
+        if (interface.address.address4.sin_family == AF_INET) {
+            uv_ip4_name(&interface.address.address4, buf, sizeof(buf));
+            std::string strName = interface.name;
+            if( strName == ifName )
+            {
+                ret = true;
+                ifAddr = buf;
+                break;
+            }
+        }
+
+        //        else if (interface.address.address4.sin_family == AF_INET6) {
+        //            uv_ip6_name(&interface.address.address6, buf, sizeof(buf));
+        //            printf("IPv6 address: %s\n", buf);
+        //        }
+    }
+
+    uv_free_interface_addresses(info, count);
+    return ret;
+}
+
+void umn::ip::IpInterface::startBeaconEmission()
+{
+    // Start emitting beacon on broadcast port on the right interface
+}
+
+void umn::ip::IpInterface::startBeaconReception()
+{
+    // Start receiving beacons on broadcast port on the right interface
+    uv_udp_init( _uvLoop, &_beaconRecvSocket);
+    struct sockaddr_in recv_addr;
+    // uv_udp_set_multicast_interface()
+    uv_ip4_addr("0.0.0.0", 6900, &recv_addr);
+    uv_udp_bind(&_beaconRecvSocket, (const struct sockaddr*)&recv_addr,0);
+    uv_udp_set_multicast_interface( &_beaconRecvSocket, _ownIpAddr.c_str());
+    uv_udp_recv_start(&_beaconRecvSocket, alloc_cb, on_read);
+}
+
 void umn::ip::IpInterface::node_recv_cb(uv_udp_t *handle, ssize_t nread, uv_buf_t, sockaddr *addr, unsigned flags)
 {
     IpInterface* ipi = (IpInterface*)handle->data;
     cout << "coucou ?" << endl;
+
+}
+
+void umn::ip::IpInterface::onReceiveBeacon(uv_udp_t *handle, ssize_t nread, uv_buf_t, sockaddr *addr, unsigned flags)
+{
+
+
 }

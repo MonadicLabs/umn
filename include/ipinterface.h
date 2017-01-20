@@ -77,6 +77,8 @@ namespace umn
             std::map< std::string, IpNodeReference* > _nodeRefs;
 
             bool checkNetworkInterfaceExists(const std::string& ifName);
+            bool findInterfaceAddress( const std::string& ifName, std::string& ifAddr );
+
             void startEmittingBeacon()
             {
                 _beaconEmissionThread = std::thread( &IpInterface::emitBeacon, this );
@@ -87,11 +89,17 @@ namespace umn
                 _beaconReceptionThread = std::thread( &IpInterface::receiveBeacon, this );
             }
 
+            void startBeaconEmission();
+            void startBeaconReception();
+
             std::thread _beaconEmissionThread;
             std::thread _beaconReceptionThread;
 
             uv_loop_t* _uvLoop;
+            uv_udp_t _beaconRecvSocket;
+
             static void node_recv_cb( uv_udp_t* handle, ssize_t nread, uv_buf_t, struct sockaddr* addr, unsigned flags );
+            static void onReceiveBeacon( uv_udp_t* handle, ssize_t nread, uv_buf_t, struct sockaddr* addr, unsigned flags );
 
         protected:
 
