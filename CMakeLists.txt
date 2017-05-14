@@ -5,7 +5,7 @@ project( UMN C CXX )
 
 set( CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${PROJECT_SOURCE_DIR}/cmake")
 SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fpermissive -pthread " )
-SET(CMAKE_EXE_LINKER_FLAGS "-pthread")
+SET( CMAKE_EXE_LINKER_FLAGS "-pthread" )
 
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -18,6 +18,7 @@ else()
         message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
 
+
 find_package( UV REQUIRED )
 if( UV_FOUND )
     include_directories( ${UV_INCLUDE_DIRS} )
@@ -26,8 +27,9 @@ endif()
 
 include_directories( ./include )
 file(GLOB_RECURSE PROJSRC ${PROJECT_SOURCE_DIR}/src/*.c*)
+file(GLOB_RECURSE PROJHEADERS {PROJECT_SOURCE_DIR}/include/*.h)
 
-add_executable( umn ${PROJSRC} )
+add_executable( umn ${PROJSRC} ${PROJHEADERS} )
 
 target_link_libraries( umn ${DEPS} )
 
