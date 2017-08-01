@@ -1,6 +1,11 @@
 #pragma once
 
 #include "comminterface.h"
+#include "umparser.h"
+
+#include <sole/sole.hpp>
+
+#include <map>
 
 class IPInterface : public CommInterface
 {
@@ -8,15 +13,32 @@ public:
     IPInterface( Node* parent, const std::string& ifaceName );
     virtual ~IPInterface();
 
-    void printBuffer( uv_buf_t buf );
+    void test_send();
 
-    void processBeaconData( uint8_t* buffer, size_t bufferSize );
+    void processBeaconData(uint8_t* buffer, size_t bufferSize , string ip);
+    void decreaseTTL();
 
 private:
+
+    typedef struct
+    {
+        std::string ip;
+        int last_ts;
+        int ttl;
+        uv_udp_t send_socket;
+    } IpReference;
+
     std::string _ifaceName;
 
     void initBeaconReception();
     uv_udp_t _beaconClient;
+    uv_timer_t _ttlTimer;
+    UMParser _parser;
+
+    void addUdpInterface( const std::string& ip );
+    void removeUdpInterface( const std::string& ip );
+
+    std::map< sole::uuid, IpReference > _iprefs;
 
 protected:
 
