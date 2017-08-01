@@ -23,6 +23,8 @@ find_package( UV REQUIRED )
 if( UV_FOUND )
     include_directories( ${UV_INCLUDE_DIRS} )
     set( DEPS "${DEPS};${UV_LIBRARIES}" )
+else()
+    message("oops :/")
 endif()
 
 include_directories( ./include )

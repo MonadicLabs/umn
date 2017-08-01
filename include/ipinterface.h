@@ -1,86 +1,23 @@
 #pragma once
 
-#include <vector>
-#include <string>
-#include <map>
-#include <thread>
-#include <iostream>
-
 #include "comminterface.h"
-#include "frame.h"
 
-#ifdef USE_UV
-#include <uv.h>
-#else
-#include "udpreceiver.h"
-#include "udptransmitter.h"
-#endif
-
-#define IP_COMM_PORT 49800
-
-namespace umn
+class IPInterface : public CommInterface
 {
-    namespace ip
-    {
-        typedef struct
-        {
-            int _ttl;
-            std::string _nodeIp;
-            ShortId _nodeId;
-            UDPTransmitter* _udpSend;
-        } IpNodeReference;
+public:
+    IPInterface( Node* parent, const std::string& ifaceName );
+    virtual ~IPInterface();
 
-        class IpInterface: public CommInterface
-        {
-        public:
-            IpInterface( const std::string& ifName )
-                :_ifName(ifName)
-            {
-                init();
-            }
+    void printBuffer( uv_buf_t buf );
 
-            virtual ~IpInterface()
-            {
+    void processBeaconData( uint8_t* buffer, size_t bufferSize );
 
-            }
+private:
+    std::string _ifaceName;
 
-            virtual void send(Frame frame)
-            {
+    void initBeaconReception();
+    uv_udp_t _beaconClient;
 
-            }
+protected:
 
-            virtual bool receive( Frame& frame )
-            {
-                std::cout << "received frame..." << std::endl;
-                return false;
-            }
-
-            virtual void init()
-            {
-#ifdef USE_UV
-                _uvLoop = uv_default_loop();
-#else
-                _multicastRecv = new UDPReceiver( IP_COMM_PORT, _ifName, "225.0.0.37" );
-                _multicastSend = new UDPTransmitter( IP_COMM_PORT, "225.0.0.37", _ifName );
-#endif
-            }
-
-            virtual void destroy()
-            {
-
-            }
-
-            virtual void run();
-
-        private:
-            std::string _ifName;
-#ifdef USE_UV
-            uv_loop_t* _uvLoop;
-#else
-            UDPReceiver *       _multicastRecv;
-            UDPTransmitter *    _multicastSend;
-#endif
-
-        };
-    }
-}
+};

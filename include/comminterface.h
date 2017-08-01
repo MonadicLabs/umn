@@ -1,26 +1,20 @@
+
 #pragma once
 
-#include "frame.h"
-#include "runnable.h"
+#include <memory>
+#include <uv.h>
 
-namespace umn
+#include "node.h"
+
+class CommInterface
 {
-    class Node;
-    class CommInterface : public umn::Runnable
-    {
-        friend class Node;
-    public:
-        CommInterface(){}
-        virtual ~CommInterface(){}
+public:
+    CommInterface( Node* parent );
+    virtual ~CommInterface();
 
-    private:
-        void setParentNode( Node* node )
-        {
-            _parentNode = node;
-        }
+private:
 
-    protected:
-        Node* _parentNode;
+protected:
+    Node* _parent;
 
-    };
-}
+};
