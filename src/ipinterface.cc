@@ -1,5 +1,7 @@
 
 #include "ipinterface.h"
+#include "utils.h"
+#include "node.h"
 
 #include <iostream>
 using namespace std;
@@ -23,8 +25,11 @@ static void IPINTERFACE_BEACONCLIENT_recv_cb(uv_udp_t* handle,
         return;
     }
 
+    struct sockaddr_in *addr_in = (struct sockaddr_in *)addr;
+    char *s = inet_ntoa(addr_in->sin_addr);
+
     IPInterface* ref = (IPInterface*)(handle->data);
-    ref->processBeaconData((uint8_t*)(buf.base), nread, "10.0.0.1" );
+    ref->processBeaconData((uint8_t*)(buf.base), nread, s );
 }
 
 void timer_cb1 (uv_timer_t* timer, int status) {
@@ -32,11 +37,17 @@ void timer_cb1 (uv_timer_t* timer, int status) {
     ref->decreaseTTL();
 }
 
+void xmit_timer_cb (uv_timer_t* timer, int status) {
+    // cerr << "xmit !" << endl;
+    IPInterface* ref = (IPInterface*)(timer->data);
+    ref->emitBeacon();
+}
 
 IPInterface::IPInterface(Node *parent, const std::string &ifaceName)
     :CommInterface(parent), _ifaceName(ifaceName)
 {
     initBeaconReception();
+    initBeaconEmission();
 }
 
 IPInterface::~IPInterface()
@@ -44,31 +55,38 @@ IPInterface::~IPInterface()
 
 }
 
+int IPInterface::send(Packet &p)
+{
+    uint8_t tmpBuffer[1024];
+    int sSize = p.copyToBuffer(tmpBuffer, 1024);
+
+    // For all listed IP addresses, send a copy of packet
+    for( auto kv : this->_iprefs )
+    {
+        cerr << "################ SENDING PACKET TO IP=" << kv.second.ip << endl;
+        novadem::link::UDPTransmitter udpt( 5000, kv.second.ip, this->_ifaceName );
+        udpt.send( tmpBuffer, sSize );
+    }
+}
+
 void on_send(uv_udp_send_t *req, int status) {
-  cerr << "####################################### sen !" << endl;
+    cerr << "####################################### sen !" << endl;
 }
 
 void IPInterface::test_send()
 {
 
-    cerr << "sedinfdin ??" << endl;
-    IpReference ir = _iprefs[ sole::rebuild("00000000-0000-00ff-0100-000000000000") ];
-    uv_udp_t poop = ir.send_socket;
-    struct sockaddr_in send_addr =  uv_ip4_addr( "10.0.0.1", 10005 );
-    uv_udp_send_t * send_req = new uv_udp_send_t;
-    uv_buf_t discover_msg = uv_buf_init("PING", 4);
-    int r = uv_udp_send(send_req, &poop, &discover_msg, 1, send_addr, on_send);
-    cerr << "r_send=" << r << endl;
-
 }
 
 void IPInterface::initBeaconReception()
 {
-    struct sockaddr_in addr = uv_ip4_addr("10.0.0.27", 12345);
+    struct sockaddr_in addr = uv_ip4_addr( "0.0.0.0", 12345);
     int r = uv_udp_init(uv_default_loop(), &_beaconClient);
     _beaconClient.data = this;
     r = uv_udp_bind(&_beaconClient, addr, 0);
-    r = uv_udp_set_membership(&_beaconClient, "239.255.0.1", NULL, UV_JOIN_GROUP);
+
+    r = uv_udp_set_membership(&_beaconClient, "239.255.0.1", novadem::link::getNetworkInterfaceIP(_ifaceName).c_str(), UV_JOIN_GROUP);
+    r = uv_udp_set_multicast_loop(&_beaconClient, 0);
     r = uv_udp_recv_start(&_beaconClient, IPINTERFACE_alloc_cb, IPINTERFACE_BEACONCLIENT_recv_cb);
 
     uv_timer_init( uv_default_loop(), &_ttlTimer );
@@ -76,10 +94,19 @@ void IPInterface::initBeaconReception()
     uv_timer_start(&_ttlTimer, (uv_timer_cb) &timer_cb1, 100, 100);
 }
 
+void IPInterface::initBeaconEmission()
+{
+    _beaconTransmitter = new novadem::link::UDPTransmitter( 12345, "239.255.0.1", _ifaceName );
+
+    // Create a libuv timer that sends a beacon every xth of a second
+    uv_timer_init( uv_default_loop(), &_xmitTimer );
+    _xmitTimer.data = this;
+    uv_timer_start( &_xmitTimer, (uv_timer_cb) &xmit_timer_cb, 100, 100 );
+}
+
 void IPInterface::processBeaconData(uint8_t *buffer, size_t bufferSize, std::string ip )
 {
-    cerr << "received " << bufferSize << " bytes !" << endl;
-    // _parser.appendData( buffer, bufferSize );
+    // cerr << "received " << bufferSize << " bytes ! from " << ip << endl;
 
     if( bufferSize == 128/8 )
     {
@@ -89,6 +116,14 @@ void IPInterface::processBeaconData(uint8_t *buffer, size_t bufferSize, std::str
         memcpy( &cd, buffer + 8, 8 );
 
         sole::uuid sid = sole::rebuild( ab, cd );
+
+        // Check if it's our own beacon
+        if( ip == novadem::link::getNetworkInterfaceIP(_ifaceName) )
+        {
+            // cerr << "own beacon." << endl;
+            return;
+        }
+
         cerr << "ppopo received id: " << sid << endl;
 
         // Check if already known
@@ -98,10 +133,6 @@ void IPInterface::processBeaconData(uint8_t *buffer, size_t bufferSize, std::str
             IpReference ir;
             ir.ip = ip;
             ir.ttl = 128;
-            uv_udp_init( uv_default_loop(), &ir.send_socket );
-             struct sockaddr_in addr = uv_ip4_addr( "10.0.0.1", 10005 );
-            uv_udp_bind(&ir.send_socket, addr, 0);
-
             _iprefs.insert( make_pair(sid, ir ) );
         }
 
@@ -110,9 +141,7 @@ void IPInterface::processBeaconData(uint8_t *buffer, size_t bufferSize, std::str
             _iprefs[ sid ].ttl = 128;
         }
     }
-
-    test_send();
-
+    // test_send();
 }
 
 void IPInterface::decreaseTTL()
@@ -135,4 +164,13 @@ void IPInterface::decreaseTTL()
         }
     }
 
+}
+
+void IPInterface::emitBeacon()
+{
+    char popo[1024];
+    sole::uuid u = _parent->getId();
+    memcpy( popo, &(u.ab), 64 / 8 );
+    memcpy( popo + 8, &(u.cd), 64 / 8 );
+    _beaconTransmitter->send( popo, 128 / 8 );
 }

@@ -2,6 +2,7 @@
 
 #include "comminterface.h"
 #include "umparser.h"
+#include "udptransmitter.h"
 
 #include <sole/sole.hpp>
 
@@ -9,14 +10,18 @@
 
 class IPInterface : public CommInterface
 {
+
 public:
     IPInterface( Node* parent, const std::string& ifaceName );
     virtual ~IPInterface();
+
+    virtual int send(Packet &p);
 
     void test_send();
 
     void processBeaconData(uint8_t* buffer, size_t bufferSize , string ip);
     void decreaseTTL();
+    void emitBeacon();
 
 private:
 
@@ -25,7 +30,6 @@ private:
         std::string ip;
         int last_ts;
         int ttl;
-        uv_udp_t send_socket;
     } IpReference;
 
     std::string _ifaceName;
@@ -39,6 +43,10 @@ private:
     void removeUdpInterface( const std::string& ip );
 
     std::map< sole::uuid, IpReference > _iprefs;
+
+    void initBeaconEmission();
+    uv_timer_t _xmitTimer;
+    novadem::link::UDPTransmitter * _beaconTransmitter;
 
 protected:
 

@@ -10,13 +10,20 @@
 #include <unistd.h>
 #include <cstring>
 
+#include <iostream>
+using namespace std;
+
 novadem::link::UDPTransmitter::UDPTransmitter(uint16_t port, std::string host, std::string multicastInterface )
     :_host(host), _port(port), _multicastInterface( multicastInterface ), _fd(-1)
 {
+    // cerr << "mudlf: " << _multicastInterface << endl;
+
     if (( _fd=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP))==-1)
     {
 #ifdef USE_LOGGING
         LOG_S(ERROR) << "Failed to open UDP socket.";
+#else
+        cerr << "Failed to open UDP socket." << endl;
 #endif
     }
 
@@ -35,14 +42,22 @@ novadem::link::UDPTransmitter::UDPTransmitter(uint16_t port, std::string host, s
         {
 #ifdef USE_LOGGING
             LOG_S(ERROR) << "setsockopt Multicast failed on interface " << _multicastInterface;
+#else
+            cerr << "setsockopt Multicast failed on interface " << _multicastInterface << " IP_ADDR=" << intIp << endl;
 #endif
         }
         else
         {
 #ifdef USE_LOGGING
-            LOG_S(INFO) << "Setting multicast to " << _host << " on interface " << _multicastInterface << " : OK";
+            LOG_S(INFO) << "Setting multicast to " << _host << " on interface " << _multicastInterface << " : OK - IP_ADDR = " << intIp;
+#else
+            cerr << "Setting multicast to " << _host << " on interface " << _multicastInterface << " : OK - IP_ADDR = " << intIp << endl;
 #endif
         }
+    }
+    else
+    {
+
     }
 
 }

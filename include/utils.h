@@ -15,3 +15,5 @@ uint32_t intFromByteArray( uint8_t* buffer );
 
 }
 }
+
+std::string getInterfaceIP(const std::string& ifaceName );

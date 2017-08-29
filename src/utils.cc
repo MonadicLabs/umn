@@ -14,6 +14,11 @@
 #include <string>
 #include <algorithm>
 #include <chrono>
+#include <iostream>
+
+using namespace std;
+
+#include <uv.h>
 
 bool novadem::link::isMulticastAddress(const std::string &ipAddress)
 {
@@ -26,37 +31,7 @@ bool novadem::link::isMulticastAddress(const std::string &ipAddress)
 
 std::string novadem::link::getNetworkInterfaceIP(const std::string &interfaceName)
 {
-    std::string ret = "";
-    struct ifaddrs *ifaddr, *ifa;
-    int family, s;
-    char host[NI_MAXHOST];
-    if (getifaddrs(&ifaddr) == -1)
-    {
-        perror("getifaddrs");
-        exit(EXIT_FAILURE);
-    }
-    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next)
-    {
-        if (ifa->ifa_addr == NULL)
-            continue;
-
-        s=getnameinfo(ifa->ifa_addr,sizeof(struct sockaddr_in),host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
-        if((strcmp(ifa->ifa_name, interfaceName.c_str())==0)&&(ifa->ifa_addr->sa_family==AF_INET))
-        {
-            if (s != 0)
-            {
-#ifdef USE_LOGGING
-                LOG_S(ERROR) << "getnameinfo failed !";
-#endif
-                exit(EXIT_FAILURE);
-            }
-            // printf("\tInterface : <%s>\n",ifa->ifa_name );
-            // printf("\t  Address : <%s>\n", host);
-            ret = host;
-        }
-    }
-    freeifaddrs(ifaddr);
-    return ret;
+    return getInterfaceIP(interfaceName);
 }
 
 
@@ -96,5 +71,49 @@ uint32_t novadem::link::intFromByteArray(uint8_t *buffer)
 {
     uint32_t ret = 0;
     memcpy( &ret, buffer, sizeof(uint32_t) );
+    return ret;
+}
+
+
+std::string getInterfaceIP(const std::string &ifaceName)
+{
+
+    std::string ret = "";
+
+    char buf[512];
+    uv_interface_address_t *info;
+    int count, i;
+
+    uv_interface_addresses(&info, &count);
+    i = count;
+
+    // printf("Number of interfaces: %d\n", count);
+    while (i--) {
+        uv_interface_address_t interface_wlan = info[i];
+
+        // printf("Name: %s\n", interface_wlan.name);
+        // printf("Internal? %s\n", interface_wlan.is_internal ? "Yes" : "No");
+
+        if (interface_wlan.address.address4.sin_family == AF_INET) {
+            uv_ip4_name(&interface_wlan.address.address4, buf, sizeof(buf));
+            // printf("IPv4 address: %s\n", buf);
+
+            //
+            // cerr << "l:" << std::string(interface_wlan.name) << " q:" << ifaceName << endl;
+            if( std::string(interface_wlan.name) == ifaceName )
+            {
+                ret = std::string(buf);
+            }
+            //
+        }
+        else if (interface_wlan.address.address4.sin_family == AF_INET6) {
+            uv_ip6_name(&interface_wlan.address.address6, buf, sizeof(buf));
+            // printf("IPv6 address: %s\n", buf);
+        }
+
+        // printf("\n");
+    }
+
+    uv_free_interface_addresses(info, count);
     return ret;
 }

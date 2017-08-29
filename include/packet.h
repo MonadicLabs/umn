@@ -53,6 +53,27 @@ public:
         return _sendId;
     }
 
+    int copyToBuffer( uint8_t* buffer, int bufferSize )
+    {
+        uint8_t* popo = buffer;
+        int offset = 0;
+        popo[ offset++ ] = 'U';
+        popo[ offset++ ] = 'M';
+        popo[ offset++ ] = 0;
+
+        memcpy( popo + offset, &(_sendId.ab), 8 );
+        offset += 8;
+        memcpy( popo + offset, &(_sendId.cd), 8 );
+        offset += 8;
+
+        memcpy( popo + offset, &(_recvId.ab), 8 );
+        offset += 8;
+        memcpy( popo + offset, &(_recvId.cd), 8 );
+        offset += 8;
+
+        return offset;
+    }
+
     void debugPrint()
     {
         unsigned char popo[1024];
