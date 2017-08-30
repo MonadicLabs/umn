@@ -77,23 +77,9 @@ public:
     void debugPrint()
     {
         unsigned char popo[1024];
-        int offset = 0;
-        popo[ offset++ ] = 'U';
-        popo[ offset++ ] = 'M';
-        popo[ offset++ ] = 0;
-
-        memcpy( popo + offset, &(_sendId.ab), 8 );
-        offset += 8;
-        memcpy( popo + offset, &(_sendId.cd), 8 );
-        offset += 8;
-
-        memcpy( popo + offset, &(_recvId.ab), 8 );
-        offset += 8;
-        memcpy( popo + offset, &(_recvId.cd), 8 );
-        offset += 8;
-
+        int r = copyToBuffer( popo, 1024 );
         cerr << "####" << endl;
-        for( int k = 0; k < offset; ++k )
+        for( int k = 0; k < r; ++k )
         {
             cerr << "\\x" << HEX((int)(popo[k])) << "";
         }
@@ -103,6 +89,9 @@ public:
 
 private:
     Packet::Type _type;
+
+    uint8_t _protocolMajorVersion;
+    uint8_t _protocolMinorVersion;
 
     sole::uuid _sendId;
     sole::uuid _recvId;

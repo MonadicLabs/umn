@@ -168,7 +168,7 @@ void IPInterface::decreaseTTL()
 
 void IPInterface::emitBeacon()
 {
-    char popo[1024];
+    uint8_t popo[1024];
     sole::uuid u = _parent->getId();
     memcpy( popo, &(u.ab), 64 / 8 );
     memcpy( popo + 8, &(u.cd), 64 / 8 );
