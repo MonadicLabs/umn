@@ -18,7 +18,8 @@ static void IPINTERFACE_BEACONCLIENT_recv_cb(uv_udp_t* handle,
                                              unsigned flags)
 {
     if (nread < 0) {
-
+        // cerr << "error." << endl;
+        return;
     }
 
     if (nread == 0) {
@@ -80,10 +81,11 @@ void IPInterface::test_send()
 
 void IPInterface::initBeaconReception()
 {
-    struct sockaddr_in addr = uv_ip4_addr( "0.0.0.0", 12345);
-    int r = uv_udp_init(uv_default_loop(), &_beaconClient);
+    struct sockaddr_in addr;
+    int r = uv_ip4_addr( "0.0.0.0", 12345, &addr );
+    r = uv_udp_init(uv_default_loop(), &_beaconClient);
     _beaconClient.data = this;
-    r = uv_udp_bind(&_beaconClient, addr, 0);
+    r = uv_udp_bind(&_beaconClient, (const struct sockaddr *)(&addr), UV_UDP_REUSEADDR);
 
     r = uv_udp_set_membership(&_beaconClient, "239.255.0.1", novadem::link::getNetworkInterfaceIP(_ifaceName).c_str(), UV_JOIN_GROUP);
     r = uv_udp_set_multicast_loop(&_beaconClient, 0);
@@ -111,11 +113,8 @@ void IPInterface::processBeaconData(uint8_t *buffer, size_t bufferSize, std::str
     if( bufferSize == 128/8 )
     {
         // Retrrieve sender id
-        uint64_t ab, cd;
-        memcpy( &ab, buffer, 8 );
-        memcpy( &cd, buffer + 8, 8 );
-
-        sole::uuid sid = sole::rebuild( ab, cd );
+        NodeIdType sid;
+        memcpy( &sid, buffer, sizeof(NodeIdType) );
 
         // Check if it's our own beacon
         if( ip == novadem::link::getNetworkInterfaceIP(_ifaceName) )
@@ -169,8 +168,7 @@ void IPInterface::decreaseTTL()
 void IPInterface::emitBeacon()
 {
     uint8_t popo[1024];
-    sole::uuid u = _parent->getId();
-    memcpy( popo, &(u.ab), 64 / 8 );
-    memcpy( popo + 8, &(u.cd), 64 / 8 );
-    _beaconTransmitter->send( popo, 128 / 8 );
+    NodeIdType u = _parent->getId();
+    memcpy( popo, &(u), sizeof(NodeIdType) );
+    _beaconTransmitter->send( popo, sizeof(NodeIdType) );
 }

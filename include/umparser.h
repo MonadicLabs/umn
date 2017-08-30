@@ -78,7 +78,7 @@ public:
             {
                 _curPacket.setType( (Packet::Type)(curByte) );
                 _curState = UMPARSER_WAIT_SENDERID;
-                _remainingBytes = 16;
+                _remainingBytes = 4;
             }
             else
             {
@@ -89,34 +89,38 @@ public:
 
         case UMPARSER_WAIT_SENDERID:
         {
-            _tmpBuffer[ 16 - _remainingBytes ] = curByte;
+            _tmpBuffer[ 4 - _remainingBytes ] = curByte;
             _remainingBytes--;
             if( _remainingBytes == 0 )
             {
-                uint64_t ab, cd;
-                memcpy( &ab, _tmpBuffer, sizeof(uint64_t) );
-                memcpy( &cd, _tmpBuffer + sizeof(uint64_t), sizeof(uint64_t) );
-                sole::uuid sid = sole::rebuild(ab,cd);
+//                uint64_t ab, cd;
+//                memcpy( &ab, _tmpBuffer, sizeof(uint64_t) );
+//                memcpy( &cd, _tmpBuffer + sizeof(uint64_t), sizeof(uint64_t) );
+//                sole::uuid sid = sole::rebuild(ab,cd);
+                uint32_t sid;
+                memcpy( &sid, _tmpBuffer, sizeof(uint32_t) );
                 _curPacket.setSenderId(sid);
 #ifdef DEBUG
                 cerr << "received sender id: " << sid << endl;
 #endif
                 _curState = UMPARSER_WAIT_RECVERID;
-                _remainingBytes = 16;
+                _remainingBytes = 4;
             }
             break;
         }
 
         case UMPARSER_WAIT_RECVERID:
         {
-            _tmpBuffer[ 16 - _remainingBytes ] = curByte;
+            _tmpBuffer[ 4 - _remainingBytes ] = curByte;
             _remainingBytes--;
             if( _remainingBytes == 0 )
             {
-                uint64_t ab, cd;
-                memcpy( &ab, _tmpBuffer, sizeof(uint64_t) );
-                memcpy( &cd, _tmpBuffer + sizeof(uint64_t), sizeof(uint64_t) );
-                sole::uuid sid = sole::rebuild(ab,cd);
+//                uint64_t ab, cd;
+//                memcpy( &ab, _tmpBuffer, sizeof(uint64_t) );
+//                memcpy( &cd, _tmpBuffer + sizeof(uint64_t), sizeof(uint64_t) );
+//                sole::uuid sid = sole::rebuild(ab,cd);
+                uint32_t sid;
+                memcpy( &sid, _tmpBuffer, sizeof(uint32_t) );
                 _curPacket.setRecepientId(sid);
 #ifdef DEBUG
                 cerr << "received receiver id: " << sid << endl;

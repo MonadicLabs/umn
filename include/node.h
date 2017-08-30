@@ -4,16 +4,16 @@
 #include <vector>
 #include <memory>
 
-#include <sole/sole.hpp>
-
 #include "comminterface.h"
+
+typedef uint32_t NodeIdType;
 
 class Node
 {
 public:
     Node();
     virtual ~Node();
-    sole::uuid getId();
+    NodeIdType getId();
 
     void addCommInterface( std::shared_ptr< CommInterface > ci );
     void broadcastBeacon();
@@ -21,7 +21,7 @@ public:
 private:
 
 
-    sole::uuid _nodeId;
+    NodeIdType _nodeId;
     std::vector< std::shared_ptr< CommInterface > > _interfaces;
 
 };

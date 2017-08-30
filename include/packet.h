@@ -1,9 +1,11 @@
 #pragma once
 
-#include <sole/sole.hpp>
-
 #include <iostream>
+#include <iomanip>
+
 using namespace std;
+
+#include <cstring>
 
 #define HEX( x ) setw(2) << setfill('0') << hex << (int)( x )
 
@@ -38,17 +40,17 @@ public:
         _type = type;
     }
 
-    void setSenderId( const sole::uuid& sid )
+    void setSenderId( const uint32_t& sid )
     {
         _sendId = sid;
     }
 
-    void setRecepientId( const sole::uuid& rid )
+    void setRecepientId( const uint32_t& rid )
     {
         _recvId = rid;
     }
 
-    sole::uuid getSenderId()
+    uint32_t getSenderId()
     {
         return _sendId;
     }
@@ -61,15 +63,11 @@ public:
         popo[ offset++ ] = 'M';
         popo[ offset++ ] = 0;
 
-        memcpy( popo + offset, &(_sendId.ab), 8 );
-        offset += 8;
-        memcpy( popo + offset, &(_sendId.cd), 8 );
-        offset += 8;
+        memcpy( popo + offset, &(_sendId), 4 );
+        offset += 4;
 
-        memcpy( popo + offset, &(_recvId.ab), 8 );
-        offset += 8;
-        memcpy( popo + offset, &(_recvId.cd), 8 );
-        offset += 8;
+        memcpy( popo + offset, &(_recvId), 4 );
+        offset += 4;
 
         return offset;
     }
@@ -93,7 +91,7 @@ private:
     uint8_t _protocolMajorVersion;
     uint8_t _protocolMinorVersion;
 
-    sole::uuid _sendId;
-    sole::uuid _recvId;
+    uint32_t _sendId;
+    uint32_t _recvId;
 
 };

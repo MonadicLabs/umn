@@ -4,8 +4,6 @@
 #include "umparser.h"
 #include "udptransmitter.h"
 
-#include <sole/sole.hpp>
-
 #include <map>
 
 class IPInterface : public CommInterface
@@ -42,7 +40,7 @@ private:
     void addUdpInterface( const std::string& ip );
     void removeUdpInterface( const std::string& ip );
 
-    std::map< sole::uuid, IpReference > _iprefs;
+    std::map< uint32_t, IpReference > _iprefs;
 
     void initBeaconEmission();
     uv_timer_t _xmitTimer;

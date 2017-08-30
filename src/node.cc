@@ -4,7 +4,8 @@
 
 Node::Node()
 {
-    _nodeId = sole::uuid4();
+    srand(time(NULL));
+    _nodeId = rand();
 }
 
 Node::~Node()
@@ -12,7 +13,7 @@ Node::~Node()
 
 }
 
-sole::uuid Node::getId()
+NodeIdType Node::getId()
 {
     return _nodeId;
 }
@@ -27,7 +28,7 @@ void Node::broadcastBeacon()
     // Cook a beacon packet.
     Packet beaconPacket( Packet::UMN_BEACON_PKT );
     beaconPacket.setSenderId( this->getId() );
-    beaconPacket.setRecepientId( sole::rebuild(0,0) );
+    beaconPacket.setRecepientId( 0 );
 
     // Send through every comm interface
     for( std::shared_ptr<CommInterface> ci : _interfaces )

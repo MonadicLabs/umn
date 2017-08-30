@@ -14,16 +14,6 @@ void func1( IPInterface* ipf )
 {
     while(true)
     {
-        Packet p;
-        p.setType( Packet::UMN_BEACON_PKT );
-        sole::uuid u = sole::rebuild(255,0);
-        sole::uuid u2 = sole::rebuild(0,255);
-        cerr << u << endl << u2 << endl;
-        p.setSenderId( u );
-        p.setRecepientId( u2 );
-        p.debugPrint();
-        cerr << "coucou" << endl;
-        ipf->send(p);
         sleep(1);
     }
 }
@@ -32,16 +22,6 @@ void func2( IPInterface* ipf )
 {
     while(true)
     {
-        Packet p;
-        p.setType( Packet::UMN_BEACON_PKT );
-        sole::uuid u = sole::rebuild(255,0);
-        sole::uuid u2 = sole::rebuild(0,255);
-        cerr << u << endl << u2 << endl;
-        p.setSenderId( u );
-        p.setRecepientId( u2 );
-        p.debugPrint();
-        cerr << "coucou" << endl;
-        ipf->send(p);
         sleep(1);
     }
 }
