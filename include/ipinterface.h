@@ -3,6 +3,7 @@
 #include "comminterface.h"
 #include "umparser.h"
 #include "udptransmitter.h"
+#include "ipservicediscovery.h"
 
 #include <map>
 
@@ -19,7 +20,11 @@ public:
 
     void processBeaconData(uint8_t* buffer, size_t bufferSize , string ip);
     void decreaseTTL();
-    void emitBeacon();
+
+    std::string getInterfaceName()
+    {
+        return _ifaceName;
+    }
 
 private:
 
@@ -32,19 +37,13 @@ private:
 
     std::string _ifaceName;
 
-    void initBeaconReception();
-    uv_udp_t _beaconClient;
-    uv_timer_t _ttlTimer;
+    IpServiceDiscovery * _serviceDiscovery;
     UMParser _parser;
 
     void addUdpInterface( const std::string& ip );
     void removeUdpInterface( const std::string& ip );
 
     std::map< uint32_t, IpReference > _iprefs;
-
-    void initBeaconEmission();
-    uv_timer_t _xmitTimer;
-    novadem::link::UDPTransmitter * _beaconTransmitter;
 
 protected:
 

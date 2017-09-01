@@ -87,12 +87,12 @@ std::string getInterfaceIP(const std::string &ifaceName)
     uv_interface_addresses(&info, &count);
     i = count;
 
-    // printf("Number of interfaces: %d\n", count);
+    printf("Number of interfaces: %d\n", count);
     while (i--) {
         uv_interface_address_t interface_wlan = info[i];
 
-        // printf("Name: %s\n", interface_wlan.name);
-        // printf("Internal? %s\n", interface_wlan.is_internal ? "Yes" : "No");
+        printf("Name: %s\n", interface_wlan.name);
+        printf("Internal? %s\n", interface_wlan.is_internal ? "Yes" : "No");
 
         if (interface_wlan.address.address4.sin_family == AF_INET) {
             uv_ip4_name(&interface_wlan.address.address4, buf, sizeof(buf));
@@ -115,5 +115,6 @@ std::string getInterfaceIP(const std::string &ifaceName)
     }
 
     uv_free_interface_addresses(info, count);
+    cerr << ifaceName << " ret=" << ret << endl;
     return ret;
 }

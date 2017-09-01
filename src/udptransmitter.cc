@@ -80,10 +80,8 @@ void novadem::link::UDPTransmitter::send(uint8_t *data, uint32_t data_len)
     groupSock.sin_family = AF_INET;
 
     // if( isMulticastAddress( _host ) )
-        groupSock.sin_addr.s_addr = inet_addr( _host.c_str() );
-
+    groupSock.sin_addr.s_addr = inet_addr( _host.c_str() );
     groupSock.sin_port = htons(_port);
-
     if (inet_aton(_host.c_str(), &groupSock.sin_addr)==0) {
         fprintf(stderr, "inet_aton() failed\n");
     }
