@@ -22,6 +22,8 @@
 #include "uv.h"
 #include "udptransmitter.h"
 #include "utils.h"
+#include "ipinterface.h"
+#include "node.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,143 +32,27 @@
 #include <assert.h>
 
 #include <iostream>
+#include <thread>
 using namespace std;
 
-#define ASSERT(handle) assert(handle)
-
-#define CHECK_HANDLE(handle) \
-    ASSERT((uv_udp_t*)(handle) == &server || (uv_udp_t*)(handle) == &client)
-
-static uv_udp_t server;
-static uv_udp_t client;
-
-static int cl_recv_cb_called;
-
-static int sv_send_cb_called;
-
-static int close_cb_called;
-
-static void alloc_cb(uv_handle_t* handle,
-                     size_t suggested_size,
-                     uv_buf_t* buf) {
-    static char slab[65536];
-    CHECK_HANDLE(handle);
-    ASSERT(suggested_size <= sizeof(slab));
-    buf->base = slab;
-    buf->len = sizeof(slab);
-}
-
-
-static void close_cb(uv_handle_t* handle) {
-    CHECK_HANDLE(handle);
-    close_cb_called++;
-}
-
-
-static void sv_send_cb(uv_udp_send_t* req, int status) {
-    ASSERT(req != NULL);
-    ASSERT(status == 0);
-    CHECK_HANDLE(req->handle);
-
-    sv_send_cb_called++;
-
-    // uv_close((uv_handle_t*) req->handle, close_cb);
-}
-
-
-static void cl_recv_cb(uv_udp_t* handle,
-                       ssize_t nread,
-                       const uv_buf_t* buf,
-                       const struct sockaddr* addr,
-                       unsigned flags) {
-    // CHECK_HANDLE(handle);
-    // ASSERT(flags == 0);
-
-    printf("nread=%d\n", nread);
-
-    cl_recv_cb_called++;
-
-    if (nread < 0) {
-        ASSERT(0 && "unexpected error");
+void func1( Node* n )
+{
+    while(true)
+    {
+        // sleep(1);
+        n->broadcastBeacon();
+        usleep(5000);
     }
-
-    if (nread == 0) {
-        /* Returning unused buffer */
-        /* Don't count towards cl_recv_cb_called */
-        ASSERT(addr == NULL);
-        return;
-    }
-
-    ASSERT(addr != NULL);
-    // ASSERT(nread == 4);
-    // ASSERT(!memcmp("PING", buf->base, nread));
-    struct sockaddr_in *addr_in = (struct sockaddr_in *)addr;
-    char *s = inet_ntoa(addr_in->sin_addr);
-    cerr << "s=" << s << endl;
-
-    /* we are done with the client handle, we can close it */
-    // uv_close((uv_handle_t*) &client, close_cb);
 }
-
 
 int main( int argc, char** argv ) {
 
-    if( std::string( argv[1] ) == "0" )
-    {
-        int r;
-        uv_udp_send_t req;
-        uv_buf_t buf;
-        struct sockaddr_in addr;
+    Node nono;
+    std::shared_ptr<CommInterface> ci1 = std::make_shared<IPInterface>( &nono, std::string(argv[1]) );
+    nono.addCommInterface( ci1 );
 
-        ASSERT(0 == uv_ip4_addr("0.0.0.0", 49800, &addr));
+    std::thread th1 = std::thread( func1, &nono );
 
-        r = uv_udp_init(uv_default_loop(), &server);
-        ASSERT(r == 0);
+    uv_run(uv_default_loop(), UV_RUN_DEFAULT);
 
-        r = uv_udp_init(uv_default_loop(), &client);
-        ASSERT(r == 0);
-
-        /* bind to the desired port */
-        r = uv_udp_bind(&client, (const struct sockaddr*) &addr, UV_UDP_REUSEADDR);
-        ASSERT(r == 0);
-
-        r = uv_udp_set_membership(&client, "225.0.0.37", getInterfaceIP( argv[2] ).c_str(), UV_JOIN_GROUP);
-        if (r == UV_ENODEV)
-            printf("No multicast support.\n");
-        ASSERT(r == 0);
-        // r = uv_udp_set_multicast_interface( &client, getInterfaceIP( argv[2] ).c_str() );
-        ASSERT( r== 0 );
-        // r = uv_udp_set_multicast_loop( &client, 0 );
-        ASSERT( r == 0 );
-        r = uv_udp_recv_start(&client, alloc_cb, cl_recv_cb);
-        ASSERT(r == 0);
-
-        /*
-        buf = uv_buf_init("PING", 4);
-        //
-        r = uv_udp_send(&req,
-                        &server,
-                        &buf,
-                        1,
-                        (const struct sockaddr*) &addr,
-                        sv_send_cb);
-        ASSERT(r == 0);
-        */
-
-        /* run the loop till all events are processed */
-        uv_run(uv_default_loop(), UV_RUN_DEFAULT);
-
-        //  ASSERT(cl_recv_cb_called == 1);
-        //  ASSERT(sv_send_cb_called == 1);
-        //  ASSERT(close_cb_called == 2);
-    }
-    else
-    {
-
-        novadem::link::UDPTransmitter utt( 49800, "225.0.0.37", argv[2] );
-        std::string str("mon message");
-        utt.send( str.c_str(), str.size() );
-    }
-    // MAKE_VALGRIND_HAPPY();
-    return 0;
 }

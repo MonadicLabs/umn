@@ -5,7 +5,9 @@
 #include "udptransmitter.h"
 #include "ipservicediscovery.h"
 
-#include <map>
+#include <vector>
+
+#include <uv.h>
 
 class IPInterface : public CommInterface
 {
@@ -16,34 +18,19 @@ public:
 
     virtual int send(Packet &p);
 
-    void test_send();
-
-    void processBeaconData(uint8_t* buffer, size_t bufferSize , string ip);
-    void decreaseTTL();
-
     std::string getInterfaceName()
     {
         return _ifaceName;
     }
 
 private:
-
-    typedef struct
-    {
-        std::string ip;
-        int last_ts;
-        int ttl;
-    } IpReference;
-
     std::string _ifaceName;
 
     IpServiceDiscovery * _serviceDiscovery;
     UMParser _parser;
 
-    void addUdpInterface( const std::string& ip );
-    void removeUdpInterface( const std::string& ip );
-
-    std::map< uint32_t, IpReference > _iprefs;
+    uv_udp_t _uvRecv;
+    void initPacketReception();
 
 protected:
 

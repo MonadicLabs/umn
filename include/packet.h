@@ -55,6 +55,11 @@ public:
         return _sendId;
     }
 
+    uint32_t getRecipientId()
+    {
+        return _recvId;
+    }
+
     int copyToBuffer( uint8_t* buffer, int bufferSize )
     {
         uint8_t* popo = buffer;
