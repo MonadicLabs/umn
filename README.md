@@ -1,3 +1,3 @@
-# UMN: Monadic Network
+![umn logo](umnlogo.png)
 
-[[https://github.com/MonadicLabs/umn/raw/master/imgs/umnlogo.png|alt=umnlogo]]
+# UMN: Monadic Network
