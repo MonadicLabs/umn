@@ -1,62 +1,55 @@
 #include <iostream>
-#include <thread>
-
-#include <uv.h>
-
-#include "ipinterface.h"
-#include "node.h"
-#include "umparser.h"
-#include "utils.h"
-
 using namespace std;
 
-void func1( IPInterface* ipf )
-{
-    while(true)
-    {
-        sleep(1);
-    }
-}
+#include <umn.h>
+using namespace umn;
 
-void func2( IPInterface* ipf )
-{
-    while(true)
-    {
-        sleep(1);
-    }
-}
-
-void func3( Node* nono )
-{
-    while(true) {
-        nono->broadcastBeacon();
-        sleep(1);
-    }
-}
+#include <unistd.h>
 
 int main( int argc, char** argv )
 {
-    Node nono;
-    cerr << "my beacon: " << nono.getId() << endl;
-
-    std::string dfd = getInterfaceIP( argv[1] );
-    cerr << "dfd=" << dfd << endl;
-
-    //    exit(0);
-    sleep(2);
-
-    std::shared_ptr<CommInterface> popo = std::make_shared<IPInterface>(&nono, argv[1]);
-    std::shared_ptr<CommInterface> popo2 = std::make_shared<IPInterface>(&nono, argv[2]);
-    nono.addCommInterface( popo );
-    nono.addCommInterface( popo2 );
-
+    srand(time(NULL));
+    Frame myFrame;
+    myFrame.setSender(NodeAddress::fromInteger(1));
+    myFrame.setDestination(NodeAddress::fromInteger(2));
+    myFrame.setPreviousHop(NodeAddress::fromInteger(3));
+    myFrame.setId(7);
+    myFrame.setType(Frame::HELLO);
+    myFrame.setFlags(16);
+    std::vector< uint8_t > data( Frame::PAYLOAD_MAX_SIZE );
+    for( int i = 0; i < data.size(); ++i )
+    {
+        data[i] = rand() % 256;
+    }
+    myFrame.setPayload( data );
+    myFrame.printBuffer();
     sleep(1);
 
-    // std::thread th( func1, popo );
-    // std::thread th2( func2, popo2 );
-    std::thread th3( func3, &nono );
+    Node mynode;
+    mynode.addTransport( make_shared<UDPTransport>( "127.0.0.1", 12345 ) );
+    mynode.run();
 
-    uv_run(uv_default_loop(), UV_RUN_DEFAULT );
+    /*
+    IOPoller popol;
+    int buffer_len = 512;
+    uint8_t buffer[ buffer_len ];
+    std::shared_ptr< Transport > t = nullptr;
+    Parser p;
+    while(true)
+    {
+        if( popol.poll(_transports, 1000) )
+        {
+            while( (t = popol.next()) != nullptr )
+            {
+                int popo = t->read( buffer, buffer_len );
+                // cerr << "t=" << t << " - r=" << popo << endl;
+                p.parse(buffer, popo);
+            }
 
+        }
+        // int popo = udpt.read( buffer, buffer_len );
+        // cerr << "r=" << popo << endl;
+    }
+    */
     return 0;
 }

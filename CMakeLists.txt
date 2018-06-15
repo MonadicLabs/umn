@@ -18,20 +18,11 @@ else()
         message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
 
-
-find_package( UV REQUIRED )
-if( UV_FOUND )
-    include_directories( ${UV_INCLUDE_DIRS} )
-    set( DEPS "${DEPS};${UV_LIBRARIES}" )
-else()
-    message("oops :/")
-endif()
-
 INCLUDE_DIRECTORIES(./extdeps)
 
 include_directories( ./include )
 file(GLOB_RECURSE PROJSRC ${PROJECT_SOURCE_DIR}/src/*.c*)
-file(GLOB_RECURSE PROJHEADERS {PROJECT_SOURCE_DIR}/include/*.h)
+file(GLOB_RECURSE PROJHEADERS ${PROJECT_SOURCE_DIR}/include/*.h)
 
 add_executable( umn ${PROJSRC} ${PROJHEADERS} )
 

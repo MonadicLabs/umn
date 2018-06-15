@@ -1,19 +1,10 @@
 #pragma once
 
-#include <string>
+#include <iostream>
 
-namespace novadem
+namespace umn
 {
-namespace link
-{
-bool isMulticastAddress( const std::string& ipAddress );
-std::string getNetworkInterfaceIP( const std::string& interfaceName );
-unsigned long getMilliseconds();
-void printHexMemory(void *mem, int mlen );
-std::string& ltrim(std::string& s, const char* t = " \t\n\r\f\v");
-uint32_t intFromByteArray( uint8_t* buffer );
-
+void print_bytes(std::ostream& out, const char *title, const unsigned char *data, size_t dataLen, bool format = true);
+uint16_t bs16(uint16_t v);
+uint32_t bs32(uint32_t num);
 }
-}
-
-std::string getInterfaceIP(const std::string& ifaceName );
