@@ -11,6 +11,7 @@ using namespace std;
 #include <byteswap.h>
 
 umn::Frame::Frame(NodeAddress sender, NodeAddress destination)
+    :_hops(0)
 {
     // Let's assume size of 128
     _buffer.reserve( HEADER_OVERHEAD + FOOTER_OVERHEAD + 128 );
@@ -29,31 +30,31 @@ umn::Frame::~Frame()
 void umn::Frame::setType(umn::Frame::Type type)
 {
     _type = type;
+    updateBuffer();
 }
 
 void umn::Frame::setFlags(uint8_t flags)
 {
     _flags = flags;
+    updateBuffer();
 }
 
 void umn::Frame::setSender(umn::NodeAddress sender)
 {
     _sender = sender;
+    updateBuffer();
 }
 
 void umn::Frame::setDestination(umn::NodeAddress destination)
 {
     _destination = destination;
+    updateBuffer();
 }
 
-void umn::Frame::setPreviousHop(umn::NodeAddress previousHop)
+void umn::Frame::setSequenceNumber(uint16_t value)
 {
-    _previousHop = previousHop;
-}
-
-void umn::Frame::setId(uint16_t value)
-{
-    _id = value;
+    _seqNum = value;
+    updateBuffer();
 }
 
 void umn::Frame::setPayload(uint8_t *buffer, size_t len)
@@ -112,11 +113,12 @@ void umn::Frame::updateBuffer()
     _destination.copyTo( (uint8_t*)(&_buffer[0] + offset ) );
     offset += sizeof( uint32_t );
 
-    _previousHop.copyTo( &_buffer[0] + offset );
-    offset += sizeof( uint32_t );
+    uint16_t shops = bs16(_hops);
+    memcpy( (uint8_t*)(&_buffer[0] + offset), (uint8_t*)(&shops), sizeof(uint16_t) );
+    offset += sizeof( uint16_t );
 
-    uint16_t sid = bs16(_id);
-    memcpy( (uint8_t*)(&_buffer[0] + offset), (uint8_t*)(&sid), sizeof(uint16_t) );
+    uint16_t snum = bs16(_seqNum);
+    memcpy( (uint8_t*)(&_buffer[0] + offset), (uint8_t*)(&snum), sizeof(uint16_t) );
     offset += sizeof( uint16_t );
 
     uint16_t spllen = bs16(_payloadLength);

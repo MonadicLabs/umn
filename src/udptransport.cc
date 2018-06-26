@@ -54,7 +54,7 @@ void umn::UDPTransport::init_rx()
             struct sockaddr_in localSock;
             memset((char *) &localSock, 0, sizeof(localSock));
             localSock.sin_family = AF_INET;
-            localSock.sin_port = htons(_port);
+            localSock.sin_port = htons(_localPort);
             localSock.sin_addr.s_addr = INADDR_ANY;
             if(bind(_rxfd, (struct sockaddr*)&localSock, sizeof(localSock)))
             {

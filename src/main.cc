@@ -8,26 +8,38 @@ using namespace umn;
 
 int main( int argc, char** argv )
 {
+    /*
     srand(time(NULL));
     Frame myFrame;
     myFrame.setSender(NodeAddress::fromInteger(1));
     myFrame.setDestination(NodeAddress::fromInteger(2));
-    myFrame.setPreviousHop(NodeAddress::fromInteger(3));
-    myFrame.setId(7);
+    myFrame.setSequenceNumber(7);
     myFrame.setType(Frame::HELLO);
     myFrame.setFlags(16);
-    std::vector< uint8_t > data( Frame::PAYLOAD_MAX_SIZE );
+    std::vector< uint8_t > data( 10 );
     for( int i = 0; i < data.size(); ++i )
     {
         data[i] = rand() % 256;
     }
     myFrame.setPayload( data );
     myFrame.printBuffer();
-    sleep(1);
+    sleep(2);
+    */
 
-    Node mynode;
-    mynode.addTransport( make_shared<UDPTransport>( "127.0.0.1", 12345 ) );
-    mynode.run();
+    int nodeType = atoi( argv[1] );
+
+    if( nodeType == 0 )
+    {
+        Node mynode( NodeAddress::fromInteger( nodeType ) );
+        mynode.addTransport( make_shared<UDPTransport>( "127.0.0.1", 12345, 12346 ) );
+        mynode.run();
+    }
+    else
+    {
+        Node mynode( NodeAddress::fromInteger( nodeType ) );
+        mynode.addTransport( make_shared<UDPTransport>( "127.0.0.1", 12346, 12345 ) );
+        mynode.run();
+    }
 
     /*
     IOPoller popol;

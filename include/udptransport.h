@@ -9,9 +9,10 @@ namespace umn
 class UDPTransport : public Transport
 {
 public:
-    UDPTransport( const std::string txHost,
-                  uint16_t port )
-        :_txHost(txHost), _port(port)
+    UDPTransport( const std::string remoteHost,
+                  uint16_t remotePort,
+                  uint16_t localPort )
+        :_txHost(remoteHost), _port(remotePort), _localPort(localPort)
     {
         init_rx();
         init_tx();
@@ -39,6 +40,7 @@ private:
 
     std::string _txHost;
     uint16_t _port;
+    uint16_t _localPort;
 
     void init_rx();
     void init_tx();

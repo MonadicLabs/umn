@@ -10,19 +10,32 @@ namespace umn
     {
     public:
 
-        // NodeAddress(){}
-        // virtual ~NodeAddress(){}
+        NodeAddress(){}
+        virtual ~NodeAddress(){}
+
+        NodeAddress( const NodeAddress& other )
+        {
+            *this = other;
+        }
+
+        NodeAddress& operator = (const NodeAddress& other)
+        {
+            _intValue = other._intValue;
+            return *this;
+        }
 
         static NodeAddress fromMemory( uint8_t* buffer, size_t len )
         {
             NodeAddress na;
             na._intValue = buffer[3] | buffer[2] << 8 | buffer[1] << 16 | buffer[0] << 24;
+            return na;
         }
 
         static NodeAddress fromInteger( uint32_t value )
         {
             NodeAddress na;
             na._intValue = value;
+            return na;
         }
 
         void copyTo( uint8_t* buffer )
