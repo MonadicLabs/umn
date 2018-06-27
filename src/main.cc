@@ -6,6 +6,30 @@ using namespace umn;
 
 #include <unistd.h>
 
+#include <thread>
+
+void node_1()
+{
+    Node mynode( NodeAddress::fromInteger( 1 ) );
+    mynode.addTransport( make_shared<UDPTransport>( "127.0.0.1", 12345, 12346 ) );
+    mynode.run();
+}
+
+void node_2()
+{
+    Node mynode( NodeAddress::fromInteger( 2 ) );
+    mynode.addTransport( make_shared<UDPTransport>( "127.0.0.1", 12346, 12345 ) );
+    mynode.addTransport( make_shared<UDPTransport>( "127.0.0.1", 12347, 12348 ) );
+    mynode.run();
+}
+
+void node_3()
+{
+    Node mynode( NodeAddress::fromInteger( 3 ) );
+    mynode.addTransport( make_shared<UDPTransport>( "127.0.0.1", 12348, 12347 ) );
+    mynode.run();
+}
+
 int main( int argc, char** argv )
 {
     /*
@@ -26,42 +50,14 @@ int main( int argc, char** argv )
     sleep(2);
     */
 
-    int nodeType = atoi( argv[1] );
+    std::thread th1 = std::thread( node_1 );
+    std::thread th2 = std::thread( node_2 );
+    // std::thread th3 = std::thread( node_3 );
 
-    if( nodeType == 0 )
-    {
-        Node mynode( NodeAddress::fromInteger( nodeType ) );
-        mynode.addTransport( make_shared<UDPTransport>( "127.0.0.1", 12345, 12346 ) );
-        mynode.run();
-    }
-    else
-    {
-        Node mynode( NodeAddress::fromInteger( nodeType ) );
-        mynode.addTransport( make_shared<UDPTransport>( "127.0.0.1", 12346, 12345 ) );
-        mynode.run();
-    }
-
-    /*
-    IOPoller popol;
-    int buffer_len = 512;
-    uint8_t buffer[ buffer_len ];
-    std::shared_ptr< Transport > t = nullptr;
-    Parser p;
     while(true)
     {
-        if( popol.poll(_transports, 1000) )
-        {
-            while( (t = popol.next()) != nullptr )
-            {
-                int popo = t->read( buffer, buffer_len );
-                // cerr << "t=" << t << " - r=" << popo << endl;
-                p.parse(buffer, popo);
-            }
-
-        }
-        // int popo = udpt.read( buffer, buffer_len );
-        // cerr << "r=" << popo << endl;
+        sleep(1);
     }
-    */
+
     return 0;
 }

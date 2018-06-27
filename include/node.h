@@ -7,6 +7,8 @@
 #include <algorithm>
 using namespace std;
 
+#include <unistd.h>
+
 #include "transport.h"
 #include "parser.h"
 #include "iopoller.h"
@@ -57,7 +59,7 @@ public:
                 uint8_t buffer[ buffer_len ];
                 int r = t->read( buffer, buffer_len );
 
-                print_bytes( cerr, "raw_buffer", buffer, r );
+                // print_bytes( cerr, "raw_buffer", buffer, r );
 
                 // Parse it !
                 std::shared_ptr< Parser > tparser = nullptr;
@@ -73,7 +75,7 @@ public:
             }
         }
         // Check for timer, if >= HELLO_PERIOD, broadcast a HELLO message :)
-        if( (double)_helloTimer.elapsed() / 10000.0 > HELLO_PERIOD_MS )
+        if( (double)_helloTimer.elapsed() / (double)(rand() % 1000000) > HELLO_PERIOD_MS )
         {
             broadcastHELLO();
             _helloTimer.reset();
@@ -83,34 +85,49 @@ public:
 
     void routeFrame( std::shared_ptr<Transport> sourceTransport, std::shared_ptr< Frame > f )
     {
-        /*
-        f->printBuffer();
-        cerr << "routeFrame()" << " sender:" << std::dec << (int)(f->getSender().asInteger()) << " - destination:" << (int)(f->getDestination().asInteger()) << " - seqnum=" << (int)f->getSequenceNumber() << endl;
-        // cerr << "pllen=" << f->getPayloadLength() << endl;
-        // cerr << f->bufferAsPythonString() << endl;
+        // cerr << std::dec << _address.asInteger() << " - " << f->bufferAsPythonString() << endl;
 
-        // LOL TEST
-        if( f->getType() == Frame::HELLO && f->getHopCount() < 10 )
+
+        if( f->getHopCount() == 0 )
         {
-            std::vector< std::shared_ptr< Transport > > excl;
-            excl.push_back( sourceTransport );
-            // increase hop count and rebroadcast
-            f->incrementHops();
-            broadcast(f, excl);
+            cerr << std::dec << _address.asInteger() << " @@@@@@ direct neighboueojr " << f->getSender().asInteger() << endl;
         }
-        */
-        if( _router )
+
+        if( f->getType() == Frame::HELLO )
+        {
+            cerr << std::dec << _address.asInteger() << " received HELLO" << endl;
+            cerr << std::dec << _address.asInteger() << " - sender " << f->getSender().asInteger() << " - hopcount=" << f->getHopCount() << " type=" << f->getType() << endl;
+
+            /*
+            if( f->getHopCount() < 5 )
+            {
+                f->incrementHops();
+                broadcast( f );
+            }
+
+            // cerr << std::dec << _address.asInteger() << " received HELLO from " << f->getSender().asInteger() << endl;
+
+            if( _neighbours.find( sourceTransport ) == _neighbours.end() )
+            {
+                _neighbours.insert( make_pair( sourceTransport, f->getSender() ) );
+                cerr << "I [" << std::dec << _address.asInteger() << "]  Discovered new neighbour: " << _neighbours[ sourceTransport ].asInteger() << endl;
+                sleep(1);
+            }
+            return;
+            */
+        }
+        else if( _router )
         {
             _router->processFrame( f, sourceTransport );
         }
-        //
     }
 
     void broadcastHELLO()
     {
-        // cerr << "HELLO!" << endl;
         std::shared_ptr< Frame > helloFrame = std::make_shared<Frame>();
         helloFrame->setType( Frame::HELLO );
+        helloFrame->setSender( _address );
+        helloFrame->updateBuffer();
         broadcast( helloFrame );
     }
 
@@ -131,8 +148,8 @@ public:
 
     void send( std::shared_ptr<Frame> f, std::shared_ptr<Transport> t )
     {
-        f->setSender( _address );
-        f->setSequenceNumber( _globalSeqNum++ );
+        // f->setSender( _address );
+        // f->setSequenceNumber( _globalSeqNum++ );
         t->write( f );
     }
 
@@ -161,9 +178,9 @@ protected:
     Timer _helloTimer;
 
     NodeAddress _address;
-
     uint16_t _globalSeqNum;
 
+    std::map< std::shared_ptr< Transport >, NodeAddress > _neighbours;
 
 };
 

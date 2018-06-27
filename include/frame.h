@@ -16,6 +16,11 @@ public:
     {
         TYPE_START = 0,
         HELLO,
+        REGULAR,
+        FANT,
+        BANT,
+        ROUTE_ERROR,
+        DUPLICATE_ERROR,
         TYPE_END
     } Type;
 
@@ -118,6 +123,7 @@ public:
     std::string bufferAsString();
     std::string bufferAsPythonString();
     void printBuffer();
+    void updateBuffer();
 
 private:
     Type    _type;
@@ -132,7 +138,6 @@ private:
     uint16_t _crc;
 
     std::vector< uint8_t > _buffer;
-    void updateBuffer();
 
 };
 }
