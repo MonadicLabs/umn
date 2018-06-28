@@ -1,31 +1,56 @@
-#ifndef TIMER_H_
-#define TIMER_H_
+//////////////////////////////////////////////////////////////////////////////
+// Timer.h
+// =======
+// High Resolution Timer.
+// This timer is able to measure the elapsed time with 1 micro-second accuracy
+// in both Windows, Linux and Unix system 
+//
+//  AUTHOR: Song Ho Ahn (song.ahn@gmail.com)
+// CREATED: 2003-01-13
+// UPDATED: 2017-03-30
+//
+// Copyright (c) 2003 Song Ho Ahn
+//////////////////////////////////////////////////////////////////////////////
 
-#include <ctime>
-#include <chrono>
+#ifndef TIMER_H_DEF
+#define TIMER_H_DEF
 
-#define SECOND 1000000000
+#if defined(WIN32) || defined(_WIN32)   // Windows system specific
+#include <windows.h>
+#else          // Unix based system specific
+#include <sys/time.h>
+#endif
 
-typedef std::chrono::high_resolution_clock clock_;
 
 class Timer
 {
 public:
-  //ctor that is probably never gonna be used
-    inline Timer() {}
+    Timer();                                    // default constructor
+    ~Timer();                                   // default destructor
 
-  //resets the starting time to the current time
-    inline static void reset() { start = clock_::now(); }
+    void   start();                             // start timer
+    void   stop();                              // stop the timer
+    double getElapsedTime();                    // get elapsed time in second
+    double getElapsedTimeInSec();               // get elapsed time in second (same as getElapsedTime)
+    double getElapsedTimeInMilliSec();          // get elapsed time in milli-second
+    double getElapsedTimeInMicroSec();          // get elapsed time in micro-second
 
-  //returns the time elapsed from the starting time
-    inline static long long elapsed() {
-        return std::chrono::duration_cast<std::chrono::nanoseconds>(clock_::now() - start).count();
-    }
 
-    inline virtual ~Timer() {}
+protected:
+
 
 private:
-    static std::chrono::time_point<clock_> start; //variable to store the starting time
+    double startTimeInMicroSec;                 // starting time in micro-second
+    double endTimeInMicroSec;                   // ending time in micro-second
+    int    stopped;                             // stop flag 
+#if defined(WIN32) || defined(_WIN32)
+    LARGE_INTEGER frequency;                    // ticks per second
+    LARGE_INTEGER startCount;                   //
+    LARGE_INTEGER endCount;                     //
+#else
+    timeval startCount;                         //
+    timeval endCount;                           //
+#endif
 };
 
-#endif // TIMER_H_
+#endif // TIMER_H_DEF

@@ -24,6 +24,15 @@ namespace umn
             return *this;
         }
 
+        bool operator <( NodeAddress const& rhs ) const {
+            return _intValue < rhs._intValue;
+        }
+
+        bool operator == ( NodeAddress const& rhs )
+        {
+            return _intValue == rhs._intValue;
+        }
+
         static NodeAddress fromMemory( uint8_t* buffer, size_t len )
         {
             NodeAddress na;

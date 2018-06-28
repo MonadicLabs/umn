@@ -23,7 +23,7 @@ public:
 
     }
 
-    bool poll( std::vector< std::shared_ptr< Transport > > transports, int timeout_ms = 10 )
+    bool poll( std::vector< std::shared_ptr< Transport > > transports, int timeout_ms = 100 )
     {
         _pfds.clear();
         _transports.clear();

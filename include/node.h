@@ -23,8 +23,6 @@ class Node
 {
 public:
 
-    static const unsigned int HELLO_PERIOD_MS = 1000;
-
     Node( NodeAddress addr = NodeAddress::fromInteger(0) )
         :_address(addr), _globalSeqNum(0)
     {
@@ -74,61 +72,20 @@ public:
                 }
             }
         }
-        // Check for timer, if >= HELLO_PERIOD, broadcast a HELLO message :)
-        if( (double)_helloTimer.elapsed() / (double)(rand() % 1000000) > HELLO_PERIOD_MS )
+
+        if( _router )
         {
-            broadcastHELLO();
-            _helloTimer.reset();
+            _router->tick();
         }
 
     }
 
     void routeFrame( std::shared_ptr<Transport> sourceTransport, std::shared_ptr< Frame > f )
     {
-        // cerr << std::dec << _address.asInteger() << " - " << f->bufferAsPythonString() << endl;
-
-
-        if( f->getHopCount() == 0 )
-        {
-            cerr << std::dec << _address.asInteger() << " @@@@@@ direct neighboueojr " << f->getSender().asInteger() << endl;
-        }
-
-        if( f->getType() == Frame::HELLO )
-        {
-            cerr << std::dec << _address.asInteger() << " received HELLO" << endl;
-            cerr << std::dec << _address.asInteger() << " - sender " << f->getSender().asInteger() << " - hopcount=" << f->getHopCount() << " type=" << f->getType() << endl;
-
-            /*
-            if( f->getHopCount() < 5 )
-            {
-                f->incrementHops();
-                broadcast( f );
-            }
-
-            // cerr << std::dec << _address.asInteger() << " received HELLO from " << f->getSender().asInteger() << endl;
-
-            if( _neighbours.find( sourceTransport ) == _neighbours.end() )
-            {
-                _neighbours.insert( make_pair( sourceTransport, f->getSender() ) );
-                cerr << "I [" << std::dec << _address.asInteger() << "]  Discovered new neighbour: " << _neighbours[ sourceTransport ].asInteger() << endl;
-                sleep(1);
-            }
-            return;
-            */
-        }
-        else if( _router )
+        if( _router )
         {
             _router->processFrame( f, sourceTransport );
         }
-    }
-
-    void broadcastHELLO()
-    {
-        std::shared_ptr< Frame > helloFrame = std::make_shared<Frame>();
-        helloFrame->setType( Frame::HELLO );
-        helloFrame->setSender( _address );
-        helloFrame->updateBuffer();
-        broadcast( helloFrame );
     }
 
     static std::shared_ptr< Node > createFromFile( const std::string& configFilePath )
@@ -148,12 +105,18 @@ public:
 
     void send( std::shared_ptr<Frame> f, std::shared_ptr<Transport> t )
     {
-        // f->setSender( _address );
-        // f->setSequenceNumber( _globalSeqNum++ );
+        f->setSender( _address );
+        f->setSequenceNumber( _globalSeqNum++ );
         t->write( f );
     }
 
-    void broadcast( std::shared_ptr<Frame> f, std::vector< std::shared_ptr< Transport > > excludedTransports = std::vector< std::shared_ptr< Transport > >(0) )
+    void relay( std::shared_ptr<Frame> f, std::shared_ptr<Transport> t )
+    {
+        f->incrementHops();
+        t->write(f);
+    }
+
+    void broadcastSend( std::shared_ptr<Frame> f, std::vector< std::shared_ptr< Transport > > excludedTransports = std::vector< std::shared_ptr< Transport > >(0) )
     {
         for( std::shared_ptr<Transport> t : _transports )
         {
@@ -166,6 +129,24 @@ public:
         }
     }
 
+    void broadcastRelay( std::shared_ptr<Frame> f, std::vector< std::shared_ptr< Transport > > excludedTransports = std::vector< std::shared_ptr< Transport > >(0) )
+    {
+        for( std::shared_ptr<Transport> t : _transports )
+        {
+            if(std::find(excludedTransports.begin(), excludedTransports.end(), t) != excludedTransports.end()) {
+                /* v contains x */
+            } else {
+                /* v does not contain x */
+                relay( f, t );
+            }
+        }
+    }
+
+    NodeAddress& address()
+    {
+        return _address;
+    }
+
 private:
     bool removeTransport( std::shared_ptr< Transport > t );
 
@@ -175,12 +156,9 @@ protected:
     std::shared_ptr< Router > _router;
 
     IOPoller _poller;
-    Timer _helloTimer;
 
     NodeAddress _address;
     uint16_t _globalSeqNum;
-
-    std::map< std::shared_ptr< Transport >, NodeAddress > _neighbours;
 
 };
 

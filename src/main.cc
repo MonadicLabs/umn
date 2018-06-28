@@ -20,6 +20,7 @@ void node_2()
     Node mynode( NodeAddress::fromInteger( 2 ) );
     mynode.addTransport( make_shared<UDPTransport>( "127.0.0.1", 12346, 12345 ) );
     mynode.addTransport( make_shared<UDPTransport>( "127.0.0.1", 12347, 12348 ) );
+    mynode.addTransport( make_shared<UDPTransport>( "127.0.0.1", 12349, 12350 ) );
     mynode.run();
 }
 
@@ -27,6 +28,15 @@ void node_3()
 {
     Node mynode( NodeAddress::fromInteger( 3 ) );
     mynode.addTransport( make_shared<UDPTransport>( "127.0.0.1", 12348, 12347 ) );
+    mynode.addTransport( make_shared<UDPTransport>( "127.0.0.1", 12352, 12353 ) );
+    mynode.run();
+}
+
+void node_4()
+{
+    Node mynode( NodeAddress::fromInteger( 4 ) );
+    mynode.addTransport( make_shared<UDPTransport>( "127.0.0.1", 12350, 12349 ) );
+    mynode.addTransport( make_shared<UDPTransport>( "127.0.0.1", 12353, 12352 ) );
     mynode.run();
 }
 
@@ -50,13 +60,30 @@ int main( int argc, char** argv )
     sleep(2);
     */
 
-    std::thread th1 = std::thread( node_1 );
-    std::thread th2 = std::thread( node_2 );
-    // std::thread th3 = std::thread( node_3 );
+    int nodeType = atoi( argv[1] );
+    cerr << "nodeType=" << nodeType << endl;
 
-    while(true)
+    if( nodeType == 0 )
     {
-        sleep(1);
+        NNPairTransport nnp( "ipc:///tmp/polbak.ipc" );
+        for( int k = 0; k < 10; ++k )
+        cerr << "nn_pair receive FD=" << nnp.fd() << endl;
+
+        std::thread th1 = std::thread( node_1 );
+        std::thread th2 = std::thread( node_2 );
+        while(true)
+        {
+            sleep(1);
+        }
+    }
+    else
+    {
+        std::thread th3 = std::thread( node_3 );
+        std::thread th4 = std::thread( node_4 );
+        while(true)
+        {
+            sleep(1);
+        }
     }
 
     return 0;
