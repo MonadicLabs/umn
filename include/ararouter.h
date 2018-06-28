@@ -24,7 +24,7 @@ class ARARouter : public Router
 public:
 
     static const unsigned int HELLO_PERIOD_MS = 100;
-    static const unsigned int HELLO_TIMEOUT_MS = 1500;
+    static const unsigned int HELLO_TIMEOUT_MS = 500;
     static const unsigned int HELLO_MAX_HOPS = 5;
 
     ARARouter( Node* parent );

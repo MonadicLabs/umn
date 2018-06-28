@@ -48,6 +48,7 @@ public:
         std::shared_ptr<Transport> t;
         if( _poller.poll( _transports ) )
         {
+            // cerr << "poll returned true. will iterate" << endl;
             while( (t = _poller.next()) != nullptr )
             {
                 // Got new data from one of our transport.
@@ -55,7 +56,10 @@ public:
                 // Grab the data
                 size_t buffer_len = 256;
                 uint8_t buffer[ buffer_len ];
+
+                // cerr << "will read." << endl;
                 int r = t->read( buffer, buffer_len );
+                // cerr << "have read." << endl;
 
                 // print_bytes( cerr, "raw_buffer", buffer, r );
 
@@ -71,11 +75,18 @@ public:
                     }
                 }
             }
+            // cerr << "done iterating." << endl;
+        }
+        else
+        {
+            // cerr << "poll returned false" << endl;
         }
 
         if( _router )
         {
+            // cerr << "will tick router;" << endl;
             _router->tick();
+            // cerr << "router ticked." << endl;
         }
 
     }

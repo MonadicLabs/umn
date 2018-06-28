@@ -109,7 +109,9 @@ bool umn::ARARouter::passHelloFrame(std::shared_ptr<umn::Frame> f, std::shared_p
 
     if( f->getHopCount() <= HELLO_MAX_HOPS )
     {
-        _parent->broadcastRelay( f );
+        std::vector< std::shared_ptr< Transport > > exclusionList;
+        exclusionList.push_back( t );
+        _parent->broadcastRelay( f, exclusionList );
     }
 
 }

@@ -23,11 +23,12 @@ public:
 
     }
 
-    bool poll( std::vector< std::shared_ptr< Transport > > transports, int timeout_ms = 100 )
+    bool poll( std::vector< std::shared_ptr< Transport > > transports, int timeout_ms = 150 )
     {
         _pfds.clear();
         _transports.clear();
         for( auto t : transports){
+//            cerr << "fd_" << t->fd() << endl;
             _pfds.push_back({t->fd(), POLLIN, 0});
             _transports.insert( make_pair( t->fd(), t ) );
         }
@@ -36,6 +37,7 @@ public:
             // TODO
             // throw std::runtime_error(std::string("poll: ") + std::strerror(errno));
         }
+
         return !!ret;
     }
 
