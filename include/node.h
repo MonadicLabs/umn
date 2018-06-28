@@ -71,7 +71,9 @@ public:
                     tparser->parse( buffer, r );
                     while( tparser->hasNext() )
                     {
-                        routeFrame( t, tparser->next() );
+                        std::shared_ptr<Frame> f = tparser->next();
+                        if( f )
+                            routeFrame( t, f );
                     }
                 }
             }

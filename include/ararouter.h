@@ -27,6 +27,8 @@ public:
     static const unsigned int HELLO_TIMEOUT_MS = 500;
     static const unsigned int HELLO_MAX_HOPS = 5;
 
+    static const unsigned int FANT_PERIOD_MS = 250;
+
     ARARouter( Node* parent );
     virtual ~ARARouter();
 
@@ -42,10 +44,11 @@ private:
     void printKnownNodes();
     void pruneKnownNodes();
 
-    void sendFANT();
+    void sendFANT(NodeAddress na);
 
 protected:
     Timer _helloTimer;
+    Timer _fantTimer;
     Timer _globalTimer;
 
     std::map< NodeAddress, std::shared_ptr< Transport > > _neighbours;

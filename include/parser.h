@@ -256,9 +256,16 @@ public:
 
     std::shared_ptr<Frame> next()
     {
-        std::shared_ptr< Frame > f = _frames.front();
-        _frames.pop_front();
-        return f;
+        if( _frames.size() > 0 )
+        {
+            std::shared_ptr< Frame > f = _frames.front();
+            _frames.pop_front();
+            return f;
+        }
+        else
+        {
+            return nullptr;
+        }
     }
 
 private:

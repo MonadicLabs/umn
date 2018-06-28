@@ -74,16 +74,24 @@ int main( int argc, char** argv )
         // cerr << "nn_pair receive FD=" << nnp.fd() << endl;
 
         std::thread th1 = std::thread( node_1 );
-        std::thread th2 = std::thread( node_2 );
+        // std::thread th2 = std::thread( node_2 );
         while(true)
         {
             sleep(1);
         }
     }
-    else
+    else if( nodeType == 1 )
     {
-        std::thread th3 = std::thread( node_3 );
+        // std::thread th3 = std::thread( node_3 );
         std::thread th4 = std::thread( node_4 );
+        while(true)
+        {
+            sleep(1);
+        }
+    }
+    else if( nodeType == 2 )
+    {
+        std::thread th4 = std::thread( node_2 );
         while(true)
         {
             sleep(1);

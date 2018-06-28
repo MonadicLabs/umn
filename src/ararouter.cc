@@ -12,6 +12,12 @@ umn::ARARouter::ARARouter(umn::Node *parent)
 {
     // Reset global timer
     _globalTimer.start();
+
+    //
+    _fantTimer.start();
+
+    //
+    _helloTimer.start();
 }
 
 umn::ARARouter::~ARARouter()
@@ -40,6 +46,7 @@ void umn::ARARouter::processFrame(std::shared_ptr<umn::Frame> f, std::shared_ptr
 
     case Frame::FANT:
     {
+        // cerr << "received FANT !!!" << endl;
         passForwardFrame( f, t );
         break;
     }
@@ -69,6 +76,15 @@ void umn::ARARouter::tick()
     pruneKnownNodes();
 
     // Also send FANTs regularly to known hosts...
+    if( (double)_fantTimer.getElapsedTimeInMilliSec() > FANT_PERIOD_MS )
+    {
+        _fantTimer.start();
+        for( auto kv : _knownNodes )
+        {
+            sendFANT( kv.first );
+        }
+        // sendFANT();
+    }
 }
 
 bool umn::ARARouter::passRegularFrame(std::shared_ptr<umn::Frame> f, std::shared_ptr<Transport> t)
@@ -89,7 +105,7 @@ bool umn::ARARouter::passBackwardFrame(std::shared_ptr<umn::Frame> f, std::share
 bool umn::ARARouter::passHelloFrame(std::shared_ptr<umn::Frame> f, std::shared_ptr<umn::Transport> t)
 {
     // cerr << "ARARouter of node " << std::dec << _parent->address().asInteger() << " received a HELLO frame." << endl;
-    // ALOG( "received a HELLO frame. " << f->getSender().asInteger() << endl );
+    ALOG( "received a HELLO frame. " << f->getSender().asInteger() << endl );
     // ALOG( "sender: " << f->getSender().asInteger() << "  hops:" << f->getHopCount() << " gtime=" << _globalTimer.getElapsedTimeInMilliSec() << endl; );
     if( _knownNodes.find(f->getSender() ) == _knownNodes.end() )
     {
@@ -152,4 +168,11 @@ void umn::ARARouter::pruneKnownNodes()
             ++it;
         }
     }
+}
+
+void umn::ARARouter::sendFANT( NodeAddress na )
+{
+    std::shared_ptr< Frame > fant = std::make_shared<Frame>( _parent->address(), na );
+    fant->setType( Frame::FANT );
+    _parent->broadcastSend( fant );
 }
