@@ -213,7 +213,7 @@ public:
         case WAITING_FOR_DATA:
         {
 #ifdef PARSER_DEBUG
-            cerr << "waiting for data expected_len=" << _curFrame->_payloadLength << endl;
+            cerr << "waiting for data expected_len=" << std::dec << _curFrame->_payloadLength << endl;
 #endif
             {
                 _tmpBuffer[ _curOffset++ ] = b;

@@ -7,7 +7,7 @@
 #include <iostream>
 using namespace std;
 
-umn::NNTx::NNTx(const std::__cxx11::string &remoteUrl)
+umn::NNTx::NNTx(const std::string &remoteUrl)
 {
     if ((_remotesock = nn_socket(AF_SP, NN_BUS)) < 0) {
        // fatal("nn_socket");

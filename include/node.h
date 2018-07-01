@@ -62,7 +62,7 @@ public:
                 // cerr << "have read." << endl;
 
                 // print_bytes( cerr, "raw_buffer", buffer, r );
-
+                
                 // Parse it !
                 std::shared_ptr< Parser > tparser = nullptr;
                 if( _parsers.find( t ) != _parsers.end() && r > 0 )
@@ -73,7 +73,10 @@ public:
                     {
                         std::shared_ptr<Frame> f = tparser->next();
                         if( f )
+                        {
+                            // cerr << "f: " << f->getSender().asInteger() << endl;
                             routeFrame( t, f );
+                        }
                     }
                 }
             }

@@ -27,6 +27,8 @@ umn::ARARouter::~ARARouter()
 
 void umn::ARARouter::processFrame(std::shared_ptr<umn::Frame> f, std::shared_ptr<umn::Transport> t)
 {
+    // ALOG( "frame type: " << f->getType() << endl );
+
     // Anyway, discard frame coming from ourself
     if( f->getSender() == _parent->address() )
         return;
@@ -105,7 +107,7 @@ bool umn::ARARouter::passBackwardFrame(std::shared_ptr<umn::Frame> f, std::share
 bool umn::ARARouter::passHelloFrame(std::shared_ptr<umn::Frame> f, std::shared_ptr<umn::Transport> t)
 {
     // cerr << "ARARouter of node " << std::dec << _parent->address().asInteger() << " received a HELLO frame." << endl;
-    ALOG( "received a HELLO frame. " << f->getSender().asInteger() << endl );
+    // ALOG( "received a HELLO frame. " << f->getSender().asInteger() << endl );
     // ALOG( "sender: " << f->getSender().asInteger() << "  hops:" << f->getHopCount() << " gtime=" << _globalTimer.getElapsedTimeInMilliSec() << endl; );
     if( _knownNodes.find(f->getSender() ) == _knownNodes.end() )
     {

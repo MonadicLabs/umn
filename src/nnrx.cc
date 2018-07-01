@@ -11,7 +11,7 @@ fatal(const char *func)
     exit(1);
 }
 
-umn::NNRx::NNRx(const std::__cxx11::string &localUrl)
+umn::NNRx::NNRx(const std::string &localUrl)
 {
     if ((_localsock = nn_socket(AF_SP, NN_BUS)) < 0) {
         fatal("nn_socket");

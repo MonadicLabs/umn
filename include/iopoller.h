@@ -28,9 +28,13 @@ public:
         _pfds.clear();
         _transports.clear();
         for( auto t : transports){
-//            cerr << "fd_" << t->fd() << endl;
-            _pfds.push_back({t->fd(), POLLIN, 0});
-            _transports.insert( make_pair( t->fd(), t ) );
+            //            cerr << "fd_" << t->fd() << endl;
+            int fd = t->fd();
+            if( fd >= 0 )
+            {
+                _pfds.push_back({fd, POLLIN, 0});
+                _transports.insert( make_pair( fd, t ) );
+            }
         }
         int ret = ::poll(&_pfds[0], _pfds.size(), timeout_ms);
         if(ret < 0){
