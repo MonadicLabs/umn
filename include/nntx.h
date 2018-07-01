@@ -14,9 +14,16 @@ namespace umn
         virtual int read( uint8_t* buffer, size_t len ){ return -1; }
         virtual int write( uint8_t* buffer, size_t len );
 
+        virtual std::string label()
+        {
+            return _url;
+        }
+
     private:
 
     protected:
         int _remotesock;
+        std::string _url;
+
     };
 }

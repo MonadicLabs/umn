@@ -8,6 +8,7 @@
 using namespace std;
 
 umn::NNTx::NNTx(const std::string &remoteUrl)
+    :_url(remoteUrl)
 {
     if ((_remotesock = nn_socket(AF_SP, NN_BUS)) < 0) {
        // fatal("nn_socket");

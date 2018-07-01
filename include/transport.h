@@ -31,5 +31,7 @@ namespace umn
             }
         }
 
+        virtual std::string label(){ return "none"; }
+
     };
 }

@@ -80,6 +80,7 @@ void umn::ARARouter::tick()
     // Also send FANTs regularly to known hosts...
     if( (double)_fantTimer.getElapsedTimeInMilliSec() > FANT_PERIOD_MS )
     {
+        ALOG( "FANT FANT !" << endl );
         _fantTimer.start();
         for( auto kv : _knownNodes )
         {
@@ -96,7 +97,28 @@ bool umn::ARARouter::passRegularFrame(std::shared_ptr<umn::Frame> f, std::shared
 
 bool umn::ARARouter::passForwardFrame(std::shared_ptr<umn::Frame> f, std::shared_ptr<umn::Transport> t)
 {
-
+    // If we're the recipient, send a BANT...
+    if( f->getDestination() == _parent->address() )
+    {
+        NodeAddress s = f->getSender();
+        ALOG( "we're the recipient ! coming from:" << s.asInteger() << endl );
+        // Also write routing information into routing table
+        if( _routes.find(s) == _routes.end() )
+        {
+            ARARoutingEntry rentry;
+            rentry.t = t;
+            rentry.pheromone = (double)rand() / (double)RAND_MAX;
+            ALOG( "addition of route entry for: " << s.asInteger() << " through " << t->label() << endl );
+            _routes.insert( make_pair(s, rentry) );
+        }
+    }
+    else
+    {
+        // ALOG( "we're not the recipient ! " << f->getDestination().asInteger() << endl );
+        std::vector< std::shared_ptr< Transport > > excl;
+        excl.push_back( t );
+        _parent->broadcastRelay( f, excl );
+    }
 }
 
 bool umn::ARARouter::passBackwardFrame(std::shared_ptr<umn::Frame> f, std::shared_ptr<umn::Transport> t)
@@ -176,5 +198,6 @@ void umn::ARARouter::sendFANT( NodeAddress na )
 {
     std::shared_ptr< Frame > fant = std::make_shared<Frame>( _parent->address(), na );
     fant->setType( Frame::FANT );
+    fant->updateBuffer();
     _parent->broadcastSend( fant );
 }

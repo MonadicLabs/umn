@@ -18,6 +18,13 @@
 
 namespace umn
 {
+
+typedef struct
+{
+    double pheromone;
+    std::shared_ptr< Transport > t;
+} ARARoutingEntry;
+
 class ARARouter : public Router
 {
 
@@ -53,6 +60,8 @@ protected:
 
     std::map< NodeAddress, std::shared_ptr< Transport > > _neighbours;
     std::map< NodeAddress, double > _knownNodes;
+
+    std::map< NodeAddress, ARARoutingEntry > _routes;
 
 };
 }

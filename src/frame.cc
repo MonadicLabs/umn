@@ -11,7 +11,7 @@ using namespace std;
 #include <byteswap.h>
 
 umn::Frame::Frame(NodeAddress sender, NodeAddress destination)
-    :_hops(0), _payloadLength(0)
+    :_sender(sender), _destination(destination), _hops(0), _payloadLength(0)
 {
     // Let's assume size of 128
     _buffer.reserve( HEADER_OVERHEAD + FOOTER_OVERHEAD + 128 );
