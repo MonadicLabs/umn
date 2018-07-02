@@ -10,7 +10,7 @@ void umn::print_bytes(std::ostream &out, const char *title, const unsigned char 
     for(size_t i = 0; i < dataLen; ++i) {
         out << std::hex << std::setw(2) << (int)data[i];
         if (format) {
-            out << (((i + 1) % 16 == 0) ? "\n" : " ");
+            out << (((i + 1) % 20 == 0) ? "\n" : " ");
         }
     }
     out << std::endl;

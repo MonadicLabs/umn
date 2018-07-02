@@ -15,7 +15,7 @@ using namespace std;
 #include "timer.h"
 #include "utils.h"
 #include "router.h"
-#include "ararouter.h"
+#include "bra.h"
 
 namespace umn
 {
@@ -26,7 +26,7 @@ public:
     Node( NodeAddress addr = NodeAddress::fromInteger(0) )
         :_address(addr), _globalSeqNum(0)
     {
-        _router = std::make_shared<ARARouter>(this);
+        _router = std::make_shared<BRA>(this);
         cerr << "NODE ADDRESS=" << _address.asInteger() << endl;
     }
 
@@ -61,7 +61,7 @@ public:
                 int r = t->read( buffer, buffer_len );
                 // cerr << "have read." << endl;
 
-                // print_bytes( cerr, "raw_buffer", buffer, r );
+                print_bytes( cerr, "raw_buffer", buffer, r );
                 
                 // Parse it !
                 std::shared_ptr< Parser > tparser = nullptr;

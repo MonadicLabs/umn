@@ -16,6 +16,7 @@ public:
     {
         TYPE_START = 0,
         HELLO,
+        DISTANCE_VECTOR_MESSAGE,
         REGULAR,
         FANT,
         BANT,

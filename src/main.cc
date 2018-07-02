@@ -16,12 +16,6 @@ void node_1() // UAV
     mynode.addTransport( make_shared<NNTx>( "ipc:///tmp/wifi_tld.ipc" ) );
     mynode.addTransport( make_shared<NNRx>( "ipc:///tmp/wifi_uav.ipc" ) );
 
-    mynode.addTransport( make_shared<NNTx>( "ipc:///tmp/laird_tld.ipc" ) );
-    mynode.addTransport( make_shared<NNRx>( "ipc:///tmp/laird_uav.ipc" ) );
-
-    mynode.addTransport( make_shared<NNRx>( "ipc:///tmp/serial_uav.ipc" ) );
-    mynode.addTransport( make_shared<NNTx>( "ipc:///tmp/serial_autopilot.ipc" ) );
-
     mynode.run();
 }
 
@@ -31,12 +25,6 @@ void node_2() // TLD
     // mynode.addTransport( make_shared<NNPairTransport>( "ipc:///tmp/node1.ipc", "ipc:///tmp/node2.ipc" ) );
     mynode.addTransport( make_shared<NNRx>( "ipc:///tmp/wifi_tld.ipc" ) );
     mynode.addTransport( make_shared<NNTx>( "ipc:///tmp/wifi_uav.ipc" ) );
-
-    mynode.addTransport( make_shared<NNTx>( "ipc:///tmp/laird_uav.ipc" ) );
-    mynode.addTransport( make_shared<NNRx>( "ipc:///tmp/laird_tld.ipc" ) );
-
-    mynode.addTransport( make_shared<NNRx>( "ipc:///tmp/udp_tld.ipc" ) );
-    mynode.addTransport( make_shared<NNTx>( "ipc:///tmp/udp_gcs.ipc" ) );
 
     mynode.run();
 }
