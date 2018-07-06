@@ -51,10 +51,10 @@ void umn::BRA::processFrame(std::shared_ptr<umn::Frame> f, std::shared_ptr<umn::
         std::vector< DistanceVector > dvm = parseDistanceVectorMessage( f->payload_ptr(), f->getPayloadLength() );
         cerr << "received dvm ! n=" << dvm.size() << endl;
         // Now print routes
-        cerr << "---- RECVD ROUTES ----" << endl;
+        cerr << "---- RECVD ROUTES from " << f->getSender().asInteger() << " ----" << endl;
         for( DistanceVector rdv : dvm )
             printDistanceVector(rdv);
-        cerr << "----------------------" << endl;
+        cerr << "-----------------------------" << endl;
 
         // Check if sender node is already known from us...
         bool alreadyReceived = false;
@@ -90,6 +90,30 @@ void umn::BRA::processFrame(std::shared_ptr<umn::Frame> f, std::shared_ptr<umn::
                     re.next = dv.first_hop;
                     _routingTable.insert( make_pair( f->getSender(), re ) );
                 }
+            }
+        }
+
+        for( DistanceVector dv : dvm )
+        {
+            // Check if we have already a reverse route from all the sources of this dvm
+            bool routeFound = false;
+            for( DistanceVector& re : _reverseRoutes )
+            {
+                if( re.source == dv.source )
+                {
+                    if( re.hops > dv.hops + 1 )
+                    {
+                        re = dv;
+                        re.hops++;
+                    }
+                    routeFound = true;
+                }
+            }
+            if( !routeFound )
+            {
+                DistanceVector ndv = dv;
+                ndv.hops++;
+                _reverseRoutes.push_back(ndv);
             }
         }
 
