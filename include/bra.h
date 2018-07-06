@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <map>
 
 #include "router.h"
 #include "timer.h"
@@ -18,6 +19,12 @@ namespace umn
             int hops;
             std::shared_ptr< Transport > transport;
         } DistanceVector;
+
+        typedef struct
+        {
+            NodeAddress next;
+            int hops;
+        } RouteEntry;
 
         // DEBUG
         void printDistanceVector( DistanceVector dv );
@@ -39,7 +46,10 @@ namespace umn
         std::vector<DistanceVector> parseDistanceVectorMessage( unsigned char * buffer, size_t len );
         void broadcastRoutingTable();
 
-        std::vector< DistanceVector > _routes;
+        std::vector< DistanceVector > _reverseRoutes;
+        std::map< NodeAddress, RouteEntry > _routingTable;
+
+        void printRoutingTable();
 
     };
 }

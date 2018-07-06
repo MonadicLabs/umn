@@ -13,8 +13,9 @@ void node_1() // UAV
     Node mynode( NodeAddress::fromInteger( 1 ) );
     // mynode.addTransport( make_shared<UDPTransport>( "127.0.0.1", 12345, 12346 ) );
     // mynode.addTransport( make_shared<NNRx>( "ipc:///tmp/node1.ipc" ) );
-    mynode.addTransport( make_shared<NNTx>( "ipc:///tmp/wifi_tld.ipc" ) );
-    mynode.addTransport( make_shared<NNRx>( "ipc:///tmp/wifi_uav.ipc" ) );
+    mynode.addTransport( make_shared<NNTx>( "ipc:///tmp/rx2.ipc" ) );
+    mynode.addTransport( make_shared<NNTx>( "ipc:///tmp/rx3.ipc" ) );
+    mynode.addTransport( make_shared<NNRx>( "ipc:///tmp/rx1.ipc" ) );
 
     mynode.run();
 }
@@ -23,8 +24,8 @@ void node_2() // TLD
 {
     Node mynode( NodeAddress::fromInteger( 2 ) );
     // mynode.addTransport( make_shared<NNPairTransport>( "ipc:///tmp/node1.ipc", "ipc:///tmp/node2.ipc" ) );
-    mynode.addTransport( make_shared<NNRx>( "ipc:///tmp/wifi_tld.ipc" ) );
-    mynode.addTransport( make_shared<NNTx>( "ipc:///tmp/wifi_uav.ipc" ) );
+    mynode.addTransport( make_shared<NNRx>( "ipc:///tmp/rx2.ipc" ) );
+    mynode.addTransport( make_shared<NNTx>( "ipc:///tmp/rx3.ipc" ) );
 
     mynode.run();
 }
@@ -32,8 +33,9 @@ void node_2() // TLD
 void node_3() // FLIGHT_CONTROLLER
 {
     Node mynode( NodeAddress::fromInteger( 3 ) );
-    mynode.addTransport( make_shared<NNRx>( "ipc:///tmp/serial_autopilot.ipc" ) );
-    mynode.addTransport( make_shared<NNTx>( "ipc:///tmp/serial_uav.ipc" ) );
+    mynode.addTransport( make_shared<NNRx>( "ipc:///tmp/rx3.ipc" ) );
+    mynode.addTransport( make_shared<NNTx>( "ipc:///tmp/rx1.ipc" ) );
+    mynode.addTransport( make_shared<NNTx>( "ipc:///tmp/rx2.ipc" ) );
     mynode.run();
 }
 
