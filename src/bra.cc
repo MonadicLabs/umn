@@ -12,6 +12,7 @@ umn::BRA::BRA(umn::Node *parent)
     :Router(parent)
 {
     _broadcastTimer.start();
+    _invalidationTimer.start();
 }
 
 umn::BRA::~BRA()
@@ -25,6 +26,12 @@ void umn::BRA::tick()
     {
         broadcastRoutingTable();
         _broadcastTimer.start();
+    }
+
+    if( _invalidationTimer.getElapsedTimeInMilliSec() >= BRA_BROADCAST_INTERVAL_MS )
+    {
+        // invalidateRoutes();
+        _invalidationTimer.start();
     }
 }
 
@@ -58,10 +65,11 @@ void umn::BRA::processFrame(std::shared_ptr<umn::Frame> f, std::shared_ptr<umn::
 
         // Check if sender node is already known from us...
         bool alreadyReceived = false;
-        for( DistanceVector re : _reverseRoutes )
+        for( DistanceVector& re : _reverseRoutes )
         {
             if( re.source == f->getSender() )
             {
+                re.validityTimer.start();
                 alreadyReceived = true;
                 break;
             }
@@ -72,6 +80,7 @@ void umn::BRA::processFrame(std::shared_ptr<umn::Frame> f, std::shared_ptr<umn::
             ndv.source = f->getSender();
             ndv.first_hop = _parent->address();
             ndv.hops = 1;
+            ndv.validityTimer.start();
             _reverseRoutes.push_back( ndv );
         }
 
@@ -88,6 +97,7 @@ void umn::BRA::processFrame(std::shared_ptr<umn::Frame> f, std::shared_ptr<umn::
                     RouteEntry re;
                     re.hops = dv.hops;
                     re.next = dv.first_hop;
+                    re.validityTimer.start();
                     _routingTable.insert( make_pair( f->getSender(), re ) );
                 }
             }
@@ -105,6 +115,7 @@ void umn::BRA::processFrame(std::shared_ptr<umn::Frame> f, std::shared_ptr<umn::
                     {
                         re = dv;
                         re.hops++;
+                        re.validityTimer.start();
                     }
                     routeFound = true;
                 }
@@ -113,6 +124,7 @@ void umn::BRA::processFrame(std::shared_ptr<umn::Frame> f, std::shared_ptr<umn::
             {
                 DistanceVector ndv = dv;
                 ndv.hops++;
+                ndv.validityTimer.start();
                 _reverseRoutes.push_back(ndv);
             }
         }
@@ -185,6 +197,22 @@ void umn::BRA::broadcastRoutingTable()
     f->setType( Frame::DISTANCE_VECTOR_MESSAGE );
     f->setSender( _parent->address() );
     _parent->broadcastSend( f );
+}
+
+void umn::BRA::invalidateRoutes()
+{
+    cerr << "*** INVALIDATION !" << endl;
+    for (auto it = _routingTable.cbegin(); it != _routingTable.cend() /* not hoisted */; /* no increment */)
+    {
+      if ((*it).second.validityTimer.getElapsedTimeInMilliSec() >= BRA_ROUTE_VALIDITY_TIMEOUT )
+      {
+        _routingTable.erase(it++);    // or "it = m.erase(it)" since C++11
+      }
+      else
+      {
+        ++it;
+      }
+    }
 }
 
 void umn::BRA::printRoutingTable()
