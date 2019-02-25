@@ -30,8 +30,8 @@ endif()
 INCLUDE_DIRECTORIES(./extdeps)
 
 include_directories( ./include )
-file(GLOB_RECURSE PROJSRC ${PROJECT_SOURCE_DIR}/src/*.c*)
-file(GLOB_RECURSE PROJHEADERS {PROJECT_SOURCE_DIR}/include/*.h)
+file(GLOB_RECURSE PROJSRC ${PROJECT_SOURCE_DIR}/sandbox/*.c*)
+file(GLOB_RECURSE PROJHEADERS {PROJECT_SOURCE_DIR}/sandbox/*.h)
 
 add_executable( umn ${PROJSRC} ${PROJHEADERS} )
 
