@@ -9,6 +9,10 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
 #include <unistd.h>
 
 namespace umn
@@ -80,6 +84,35 @@ public:
         else
         {
             return 0;
+        }
+    }
+
+    virtual size_t write(uint8_t* buffer, size_t buffer_size)
+    {
+        struct sockaddr_in groupSock;
+
+        int s, i, slen=sizeof(groupSock);
+        char buf[8192];
+
+        memset((char *) &groupSock, 0, sizeof(groupSock));
+        groupSock.sin_family = AF_INET;
+
+        // if( isMulticastAddress( _host ) )
+        std::string _host = "127.0.0.1";
+        groupSock.sin_addr.s_addr = inet_addr( _host.c_str() );
+        groupSock.sin_port = htons(_port);
+        if (inet_aton(_host.c_str(), &groupSock.sin_addr)==0) {
+            printf("inet_aton failed\n");
+        }
+
+//        if( buffer_size > UDP_MTU )
+//        {
+
+//        }
+
+        if (sendto(_fd, buffer, buffer_size, 0, (const struct sockaddr*)(&groupSock), slen)==-1)
+        {
+
         }
     }
 

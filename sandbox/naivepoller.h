@@ -31,7 +31,7 @@ namespace umn
                     {
                         if( streams[i]->_ctx )
                         {
-                            printf( "r_val=%d\n", r_val );
+                            UMN_DEBUG_PRINT( "r_val=%d\n", r_val );
                             UMN* uctx = (UMN*)(streams[i]->_ctx);
                             uctx->onNewData( streams[i], buffer, r_val );
                         }

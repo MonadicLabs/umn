@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 #if defined(DEBUG) && DEBUG > 0
  #ifdef PLATFORM_ARDUINO
     #define UMN_DEBUG_PRINT(fmt, args...) char popo[1024]; int cx = snprintf(popo, 1024, "DEBUG: %s:%d:%s(): " fmt, \
@@ -11,3 +13,5 @@
 #else
  #define UMN_DEBUG_PRINT(fmt, args...) /* Don't do anything in release builds */
 #endif
+
+void print_bytes(std::ostream& out, const char *title, const unsigned char *data, size_t dataLen, bool format = true, int symbol_per_line = 64 );

@@ -29,7 +29,7 @@ endif()
 
 INCLUDE_DIRECTORIES(./extdeps)
 
-include_directories( ./include )
+include_directories( ./sandbox/include )
 file(GLOB_RECURSE PROJSRC ${PROJECT_SOURCE_DIR}/sandbox/*.c*)
 file(GLOB_RECURSE PROJHEADERS {PROJECT_SOURCE_DIR}/sandbox/*.h)
 
