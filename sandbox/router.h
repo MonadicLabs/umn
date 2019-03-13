@@ -5,6 +5,7 @@
 
 #include <cstdio>
 #include <vector>
+#include <map>
 
 namespace umn
 {
@@ -19,7 +20,14 @@ public:
         uint16_t first_hop;
         int hops;
         // Timer validityTimer;
-    } DistanceVector;
+    } ReverseDistanceVector;
+
+    typedef struct
+    {
+        uint16_t next;
+        int hops;
+//        Timer validityTimer;
+    } RouteEntry;
 
     Router( UMN* parent = nullptr )
         :_parent(parent)
@@ -32,10 +40,7 @@ public:
 
     }
 
-    virtual void onNewFrame( Stream* s, Frame& f )
-    {
-        printf( "ROUTER NEW FRAME\n" );
-    }
+    virtual void onNewFrame( Stream* s, Frame& f );
 
     virtual void tick()
     {
@@ -45,10 +50,14 @@ public:
 private:
     void broadcastRoutingTable();
     Frame createRoutingTableFrame();
+    void printDistanceVector( ReverseDistanceVector& dv );
+    void printRoutingTable();
 
 protected:
     UMN* _parent;
-    std::vector< DistanceVector > _reverseRoutes;
+    std::vector< ReverseDistanceVector > _reverseRoutes;
+    std::vector< ReverseDistanceVector > parseReverseRoutingEntries( uint8_t* buffer, size_t buffer_size );
+    std::map< uint16_t, RouteEntry > _routingTable;
 
 };
 }

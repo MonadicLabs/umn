@@ -1,7 +1,7 @@
 #pragma once
 
 #define UMN_MAX_STREAM_NUMBER 256
-#define DEBUG 1
+// #define DEBUG 1
 
 #include "stream.h"
 #include "poller.h"
@@ -80,17 +80,19 @@ namespace umn
         void onNewFrame( Stream* s, Frame& f )
         {
             UMN_DEBUG_PRINT( "UMN NEW FRAME\n" );
-            if( f.sender_id != _id )
+            // if( f.sender_id != _id )
             {
                 if( _router )
                 {
                     _router->onNewFrame( s, f );
                 }
             }
+            /*
             else
             {
                 UMN_DEBUG_PRINT( "RECEIVED OWN FRAME\n" );
             }
+            */
         }
 
         void broadcast( Frame& f )
