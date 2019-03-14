@@ -45,13 +45,24 @@ public:
     virtual void tick()
     {
         broadcastRoutingTable();
+        broadcastHello(5);
     }
+
+    virtual void route( Frame& f );
 
 private:
     void broadcastRoutingTable();
     Frame createRoutingTableFrame();
     void printDistanceVector( ReverseDistanceVector& dv );
     void printRoutingTable();
+
+    void broadcastHello( int ttl );
+    void forwardHello( Frame& f );
+    Frame createHelloPacket( Stream* s, int ttl );
+    Frame createOHaiPacket( Frame& hello );
+    uint32_t hashPointer( void* ptr );
+    uint16_t hash32to16( uint32_t v );
+    uint16_t getStreamId( Stream* s );
 
 protected:
     UMN* _parent;

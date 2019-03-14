@@ -17,7 +17,9 @@ namespace umn
 typedef enum
 {
     UMN_FRAME_NONE = 0,
-    UMN_FRAME_REVERSE_ROUTING_TABLE
+    UMN_FRAME_REVERSE_ROUTING_TABLE,
+    UMN_FRAME_HELLO,
+    UMN_FRAME_OHAI
 } FrameType;
 
 typedef struct

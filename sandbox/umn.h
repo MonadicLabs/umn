@@ -1,7 +1,7 @@
 #pragma once
 
 #define UMN_MAX_STREAM_NUMBER 256
-// #define DEBUG 1
+#define DEBUG 1
 
 #include "stream.h"
 #include "poller.h"
@@ -19,8 +19,8 @@ namespace umn
     class UMN
     {
     public:
-        UMN( Poller* poller = 0 )
-            :_poller(poller), _currentNumStreams(0), _id(0x0001)
+        UMN( uint16_t id, Poller* poller = 0 )
+            :_poller(poller), _currentNumStreams(0), _id(id)
         {
             for( int i = 0; i < UMN_MAX_STREAM_NUMBER; ++i )
             {
@@ -51,8 +51,19 @@ namespace umn
         void addStream( Stream * s )
         {
             s->_ctx = (void*)this;
-            _streams[ _currentNumStreams++ ] = s;
+            _streams[ _currentNumStreams ] = s;
             _parsers[ _currentNumStreams ].reset();
+            _currentNumStreams++;
+        }
+
+        size_t getNumStreams()
+        {
+            return _currentNumStreams;
+        }
+
+        Stream * getStream( size_t idx )
+        {
+            return _streams[ idx ];
         }
 
         void onNewData( Stream* s, uint8_t * buffer, size_t data_size )
@@ -80,19 +91,17 @@ namespace umn
         void onNewFrame( Stream* s, Frame& f )
         {
             UMN_DEBUG_PRINT( "UMN NEW FRAME\n" );
-            // if( f.sender_id != _id )
+            if( f.sender_id != _id )
             {
                 if( _router )
                 {
                     _router->onNewFrame( s, f );
                 }
             }
-            /*
             else
             {
                 UMN_DEBUG_PRINT( "RECEIVED OWN FRAME\n" );
             }
-            */
         }
 
         void broadcast( Frame& f )

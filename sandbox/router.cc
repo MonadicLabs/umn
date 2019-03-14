@@ -116,10 +116,32 @@ void umn::Router::onNewFrame(umn::Stream *s, umn::Frame &f)
         break;
     }
 
+    case UMN_FRAME_HELLO:
+    {
+        UMN_DEBUG_PRINT( "##### RECEIVED HELLO FROM: %d\n", f.sender_id );
+        uint8_t curTTL = f.payload[ 0 ];
+        if( curTTL <= 1 )
+        {
+            // Nope
+        }
+        else
+        {
+            forwardHello( f );
+        }
+    }
+
     default:
         break;
 
     }
+}
+
+void umn::Router::route(umn::Frame &f)
+{
+    UMN_DEBUG_PRINT( "Routing from %d to %d...\n", f.sender_id, f.dest_id );
+    // Find best route for destination...
+
+    // And forward to the right node, using the right interface
 }
 
 void umn::Router::broadcastRoutingTable()
@@ -174,6 +196,93 @@ void umn::Router::printRoutingTable()
     {
         UMN_DEBUG_PRINT( "TO: %d - ROUTE: %d - HOPS: %d", kv.first, kv.second.next, kv.second.hops );
     }
+}
+
+void umn::Router::broadcastHello(int ttl)
+{
+    uint8_t buffer[ MAX_FRAME_BUFFER_SIZE ];
+    for( int i = 0; i < UMN_MAX_STREAM_NUMBER; ++i )
+    {
+        Stream * s = _parent->getStream(i);
+        if( s )
+        {
+            Frame hello = createHelloPacket( s, ttl );
+            int fsize = frameToBuffer( hello, buffer, MAX_FRAME_BUFFER_SIZE );
+            s->write( buffer, fsize );
+        }
+    }
+}
+
+void umn::Router::forwardHello(umn::Frame &f)
+{
+    // Decrease TTL
+    f.payload[ 0 ] = f.payload[ 0 ] - 1;
+
+    //
+    uint8_t buffer[ MAX_FRAME_BUFFER_SIZE ];
+    for( int i = 0; i < UMN_MAX_STREAM_NUMBER; ++i )
+    {
+        Stream * s = _parent->getStream(i);
+        if( s )
+        {
+            int fsize = frameToBuffer( f, buffer, MAX_FRAME_BUFFER_SIZE );
+            s->write( buffer, fsize );
+        }
+    }
+}
+
+umn::Frame umn::Router::createHelloPacket(umn::Stream *s, int ttl)
+{
+    Frame ret;
+    ret.type = UMN_FRAME_HELLO;
+    int offset = 0;
+    ret.payload[ offset++ ] = ttl;
+
+    uint16_t n_sid = htons( getStreamId(s) );
+    memcpy( ret.payload + offset, &n_sid, sizeof(uint16_t) );
+    offset += sizeof( uint16_t );
+    ret.payload_size = offset;
+
+    ret.sender_id = _parent->id();
+    ret.dest_id = 0xffff;
+
+    return ret;
+}
+
+umn::Frame umn::Router::createOHaiPacket(umn::Frame &hello)
+{
+    Frame ret;
+    ret.type = UMN_FRAME_OHAI;
+    memcpy( ret.payload, hello.payload, hello.payload_size );
+    ret.payload_size = hello.payload_size;
+    ret.sender_id = _parent->id();
+    ret.dest_id = hello.sender_id;
+    return ret;
+}
+
+uint32_t umn::Router::hashPointer(void *ptr)
+{
+    /*
+    Over the years, I’ve been using Thomas Wang’s hash function to hash pointers on several platforms and it worked very well in all cases:
+    */
+    uint32_t Value = (uint32_t)ptr;
+    Value = ~Value + (Value << 15);
+    Value = Value ^ (Value >> 12);
+    Value = Value + (Value << 2);
+    Value = Value ^ (Value >> 4);
+    Value = Value * 2057;
+    Value = Value ^ (Value >> 16);
+    return Value;
+}
+
+uint16_t umn::Router::hash32to16(uint32_t v)
+{
+    return v % 0xffff;
+}
+
+uint16_t umn::Router::getStreamId(umn::Stream *s)
+{
+    return hash32to16( hashPointer( s ) );
 }
 
 std::vector<umn::Router::ReverseDistanceVector> umn::Router::parseReverseRoutingEntries(uint8_t *buffer, size_t buffer_size)

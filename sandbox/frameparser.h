@@ -5,6 +5,8 @@
 
 #include <arpa/inet.h>
 
+// #define DEBUG_PARSER
+
 namespace umn
 {
 class FrameParser
@@ -44,7 +46,9 @@ public:
 
     bool parse( uint8_t* data, size_t data_size )
     {
+#ifdef DEBUG_PARSER
         UMN_DEBUG_PRINT( "Parsing data_size=%d!\n", data_size );
+#endif
         for( int i = 0; i < data_size; ++i )
         {
             if( parseByte( data[i] ) )
@@ -67,7 +71,9 @@ private:
     bool parseByte( uint8_t b )
     {
         bool ret = false;
+#ifdef DEBUG_PARSER
         UMN_DEBUG_PRINT( "BYTE=%d! STATE=%d\n", (int)b, (int)_curState );
+#endif
         switch( _curState )
         {
         case WAITING_START_SYMBOL:
@@ -78,7 +84,9 @@ private:
                 _offset = 0;
                 _itemOffset = 0;
                 _tmp[ _offset++ ] = b;
+#ifdef DEBUG_PARSER
                 UMN_DEBUG_PRINT( "RECEIVED START SYMBOL\n" );
+#endif
             }
             break;
         }
@@ -88,7 +96,9 @@ private:
             _curFrame.flags = b;
             _tmp[ _offset++ ] = b;
             _curState = WAITING_TYPE;
+#ifdef DEBUG_PARSER
             UMN_DEBUG_PRINT( "RECEIVED FLAGS\n" );
+#endif
             break;
         }
 
@@ -97,7 +107,9 @@ private:
             _curFrame.type = b;
             _tmp[ _offset++ ] = b;
             _curState = WAITING_SENDER_ID;
+#ifdef DEBUG_PARSER
             UMN_DEBUG_PRINT( "RECEIVED FRAME TYPE\n" );
+#endif
             break;
         }
 
@@ -110,7 +122,9 @@ private:
                 _curFrame.sender_id = ntohs(*(uint16_t*)(_tmp+_offset-sizeof(uint16_t)));
                 _itemOffset = 0;
                 _curState = WAITING_DEST_ID;
+#ifdef DEBUG_PARSER
                 UMN_DEBUG_PRINT( "RECEIVED SENDER_ID=%d\n", _curFrame.sender_id );
+#endif
             }
             break;
         }
@@ -124,7 +138,9 @@ private:
                 _curFrame.dest_id = ntohs(*(uint16_t*)(_tmp+_offset-sizeof(uint16_t)));
                 _itemOffset = 0;
                 _curState = WAITING_PAYLOAD_SIZE;
+#ifdef DEBUG_PARSER
                 UMN_DEBUG_PRINT( "RECEIVED DEST_ID=%d\n", _curFrame.dest_id );
+#endif
             }
             break;
         }
@@ -138,7 +154,9 @@ private:
                 _curFrame.payload_size = ntohs(*(uint16_t*)(_tmp+_offset-sizeof(uint16_t)));
                 _itemOffset = 0;
                 _curState = WAITING_PAYLOAD;
+#ifdef DEBUG_PARSER
                 UMN_DEBUG_PRINT( "RECEIVED PAYLOAD_SIZE=%d\n", _curFrame.payload_size );
+#endif
             }
             break;
         }
@@ -147,12 +165,16 @@ private:
         {
             _tmp[ _offset++ ] = b;
             _curFrame.payload[ _itemOffset++ ] = b;
+#ifdef DEBUG_PARSER
             UMN_DEBUG_PRINT( "RECEIVED BYTE OF PAYLOAD _itemOffset=%d\n", _itemOffset );
+#endif
             if( _itemOffset == _curFrame.payload_size ) // Have we received the N bytes of our item ?
             {
                 _itemOffset = 0;
                 _curState = WAITING_CRC;
+#ifdef DEBUG_PARSER
                 UMN_DEBUG_PRINT( "RECEIVED PAYLOAD\n" );
+#endif
             }
             break;
         }
