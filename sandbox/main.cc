@@ -59,10 +59,12 @@ void node3()
     Stream * s32 = new IPCTxStream( "ipc:///tmp/s32.ipc" );
     Stream * s23 = new IPCRxStream( "ipc:///tmp/s23.ipc" );
     Stream * s31 = new IPCTxStream( "ipc:///tmp/s31.ipc" );
+    Stream * s13 = new IPCRxStream( "ipc:///tmp/s13.ipc" );
 
     u.addStream( s31 );
     u.addStream( s23 );
     u.addStream( s32 );
+    u.addStream( s13 );
 
     while(true)
     {

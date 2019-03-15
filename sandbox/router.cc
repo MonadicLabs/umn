@@ -14,6 +14,8 @@ void umn::Router::onNewFrame(umn::Stream *s, umn::Frame &f)
     {
     case UMN_FRAME_REVERSE_ROUTING_TABLE:
     {
+        int ttl = f.payload[ 0 ];
+
         /*
                 a node "B" receiving a distance vector from one of its
                 in-neighbors "A" extracts the following information:
@@ -41,11 +43,11 @@ void umn::Router::onNewFrame(umn::Stream *s, umn::Frame &f)
         {
             if( re.source == f.sender_id )
             {
-                // re.validityTimer.start();
                 alreadyReceived = true;
                 break;
             }
         }
+
         if( !alreadyReceived )
         {
             ReverseDistanceVector ndv;
@@ -64,13 +66,18 @@ void umn::Router::onNewFrame(umn::Stream *s, umn::Frame &f)
             {
                 // Alright, check if already in there, but we found a REVERSE ROUTE
                 // from ourself to the sender !
-                if( _routingTable.find( f.sender_id ) == _routingTable.end() )
+                if( _reverseRoutingTable.find( f.sender_id ) == _reverseRoutingTable.end() )
                 {
                     RouteEntry re;
                     re.hops = dv.hops;
                     re.next = dv.first_hop;
                     //                    re.validityTimer.start();
-                    _routingTable.insert( make_pair( f.sender_id, re ) );
+                    _reverseRoutingTable.insert( make_pair( f.sender_id, re ) );
+                }
+                else
+                {
+                    // printf( "ALREADY HAVE ROUTING ENTRY: \n" );
+                    // printRoutingTable();
                 }
             }
         }
@@ -83,7 +90,7 @@ void umn::Router::onNewFrame(umn::Stream *s, umn::Frame &f)
             {
                 if( re.source == dv.source )
                 {
-                    if( re.hops > dv.hops + 1 )
+                    if( re.hops > dv.hops )
                     {
                         re = dv;
                         re.hops++;
@@ -109,9 +116,14 @@ void umn::Router::onNewFrame(umn::Stream *s, umn::Frame &f)
         }
         UMN_DEBUG_PRINT( "----------------------\n" );
 
-        UMN_DEBUG_PRINT( "---- ROUTING TABLE ----\n" );
-        printRoutingTable();
+        UMN_DEBUG_PRINT( "---- REVERSE ROUTING TABLE ----\n" );
+        printReverseRoutingTable();
         UMN_DEBUG_PRINT( "-----------------------\n" );
+
+        if( ttl - 1 > 0 )
+        {
+            forwardRoutingTableFrame( f );
+        }
 
         break;
     }
@@ -154,10 +166,13 @@ void umn::Router::broadcastRoutingTable()
     }
 }
 
-umn::Frame umn::Router::createRoutingTableFrame()
+umn::Frame umn::Router::createRoutingTableFrame(int ttl)
 {
     Frame f;
     int offset = 0;
+
+    // Write TTL
+    f.payload[ offset++ ] = ttl;
 
     // Write number of entries (MAX 255, then)
     f.payload[ offset++ ] = (uint8_t)(_reverseRoutes.size());
@@ -184,6 +199,12 @@ umn::Frame umn::Router::createRoutingTableFrame()
     return f;
 }
 
+void umn::Router::forwardRoutingTableFrame(umn::Frame &f)
+{
+    f.payload[ 0 ] -= 1;
+    _parent->broadcast( f );
+}
+
 void umn::Router::printDistanceVector(ReverseDistanceVector &dv)
 {
     // cerr << "[ src:" << dv.source.asInteger() << " hops:" << dv.hops << " next:" << dv.first_hop.asInteger() << " ]" << endl;
@@ -194,7 +215,15 @@ void umn::Router::printRoutingTable()
 {
     for( auto kv : _routingTable )
     {
-        UMN_DEBUG_PRINT( "TO: %d - ROUTE: %d - HOPS: %d", kv.first, kv.second.next, kv.second.hops );
+        UMN_DEBUG_PRINT( "* TO: %d - ROUTE: %d - HOPS: %d \n", kv.first, kv.second.next, kv.second.hops );
+    }
+}
+
+void umn::Router::printReverseRoutingTable()
+{
+    for( auto kv : _reverseRoutingTable )
+    {
+        UMN_DEBUG_PRINT( "* TO: %d - ROUTE: %d - HOPS: %d \n", kv.first, kv.second.next, kv.second.hops );
     }
 }
 
@@ -288,6 +317,10 @@ uint16_t umn::Router::getStreamId(umn::Stream *s)
 std::vector<umn::Router::ReverseDistanceVector> umn::Router::parseReverseRoutingEntries(uint8_t *buffer, size_t buffer_size)
 {
     int offset = 0;
+
+    // Skip TTL
+    offset++;
+
     uint8_t nentries = buffer[ offset++ ];
     UMN_DEBUG_PRINT( "parse_nentries=%d\n" , (int)nentries );
     std::vector< ReverseDistanceVector > entries;

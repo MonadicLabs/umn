@@ -52,9 +52,11 @@ public:
 
 private:
     void broadcastRoutingTable();
-    Frame createRoutingTableFrame();
+    Frame createRoutingTableFrame( int ttl = 1 );
+    void forwardRoutingTableFrame( Frame& f );
     void printDistanceVector( ReverseDistanceVector& dv );
     void printRoutingTable();
+    void printReverseRoutingTable();
 
     void broadcastHello( int ttl );
     void forwardHello( Frame& f );
@@ -69,6 +71,7 @@ protected:
     std::vector< ReverseDistanceVector > _reverseRoutes;
     std::vector< ReverseDistanceVector > parseReverseRoutingEntries( uint8_t* buffer, size_t buffer_size );
     std::map< uint16_t, RouteEntry > _routingTable;
+    std::map< uint16_t, RouteEntry > _reverseRoutingTable;
 
 };
 }
