@@ -4,7 +4,7 @@
 #define S2_IMPL
 
 #include "umn.h"
-#include "naivepoller.h"
+#include "abstractplatform.h"
 #include "udpstream.h"
 #include "ipcrxstream.h"
 #include "ipctxstream.h"
@@ -13,7 +13,7 @@ using namespace umn;
 
 void node1()
 {
-    Poller* p = new NaivePoller();
+    AbstractPlatform* p = new AbstractPlatform();
     UMN u(1, p);
     // Stream * udps = new UDPStream(12345,"lo", "235.0.0.1" );
 
@@ -33,7 +33,7 @@ void node1()
 
 void node2()
 {
-    Poller* p = new NaivePoller();
+    AbstractPlatform* p = new AbstractPlatform();
     UMN u(2, p);
     // Stream * udps = new UDPStream(12345,"lo", "235.0.0.1" );
 
@@ -53,7 +53,7 @@ void node2()
 
 void node3()
 {
-    Poller* p = new NaivePoller();
+    AbstractPlatform* p = new AbstractPlatform();
     UMN u(3, p);
 
     Stream * s32 = new IPCTxStream( "ipc:///tmp/s32.ipc" );

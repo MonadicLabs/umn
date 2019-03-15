@@ -4,7 +4,7 @@
 #define DEBUG 1
 
 #include "stream.h"
-#include "poller.h"
+#include "abstractplatform.h"
 #include "frame.h"
 #include "frameparser.h"
 #include "router.h"
@@ -19,8 +19,8 @@ namespace umn
     class UMN
     {
     public:
-        UMN( uint16_t id, Poller* poller = 0 )
-            :_poller(poller), _currentNumStreams(0), _id(id)
+        UMN( uint16_t id, AbstractPlatform* platform = 0 )
+            :_platform(platform), _currentNumStreams(0), _id(id)
         {
             for( int i = 0; i < UMN_MAX_STREAM_NUMBER; ++i )
             {
@@ -36,9 +36,9 @@ namespace umn
 
         void tick()
         {
-            if( _poller )
+            if( _platform )
             {
-                _poller->poll( _streams, UMN_MAX_STREAM_NUMBER );
+                _platform->poll( _streams, UMN_MAX_STREAM_NUMBER );
             }
 
             if( _router )
@@ -129,7 +129,7 @@ namespace umn
         Stream * _streams[ UMN_MAX_STREAM_NUMBER ];
         FrameParser _parsers[ UMN_MAX_STREAM_NUMBER ];
         int _currentNumStreams;
-        Poller * _poller;
+        AbstractPlatform * _platform;
         Router * _router;
         uint16_t _id;
 
